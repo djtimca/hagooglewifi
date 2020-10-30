@@ -68,7 +68,6 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
             if self.coordinator.data[self._system_id]["status"] == "WAN_ONLINE":
                 state = True
 
-        self._icon = "mdi:wifi" if state else "mdi:wifi-alert"
         return state
 
     async def async_reset_device(self):
