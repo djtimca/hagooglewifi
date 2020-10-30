@@ -1,0 +1,20 @@
+{
+    "title": "Google WiFi Integration",
+    "config": {
+      "step": {
+        "user": {
+          "data": {
+            "refresh_token": "Enter the refresh token obtained from https://www.angelod.com/onhubauthtool"
+          }
+        }
+      },
+      "error": {
+        "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+        "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+        "unknown": "[%key:common::config_flow::error::unknown%]"
+      },
+      "abort": {
+        "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]",
+      }
+    }
+  }

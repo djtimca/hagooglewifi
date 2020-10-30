@@ -1,0 +1,7 @@
+{
+    "name": "Google WiFi",
+    "country": "CA",
+    "domains": ["binary_sensor"],
+    "homeassistant": "0.115.0",
+    "iot_class": ["Cloud Polling"]
+}

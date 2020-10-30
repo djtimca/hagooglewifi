@@ -1,0 +1,6 @@
+reset:
+  description: Reset a Google Wifi Access Point or the System
+  fields:
+    entity_id:
+      description: Access point or system to restart
+      example: binary_sensor.this_access_point
