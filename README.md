@@ -17,7 +17,7 @@ Click Install and restart Home Assistant.
 
 ### Install manually:
 
-Copy the contents found in https://github.com/djtimca/hagooglewifi/custom_components/rocketlaunchlive to your custom_components folder in Home Assistant.
+Copy the contents found in https://github.com/djtimca/hagooglewifi/custom_components/googlewifi to your custom_components folder in Home Assistant.
 
 Restart Home Assistant.
 
