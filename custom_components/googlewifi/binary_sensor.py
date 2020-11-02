@@ -1,15 +1,25 @@
 """Definition and setup of the Google Wifi Sensors for Home Assistant."""
 
-import logging
 import voluptuous as vol
+import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.helpers import config_validation as cv, entity_platform
+from homeassistant.const import ATTR_NAME
 
 from . import GoogleWiFiUpdater, GoogleWifiEntity
 
-from .const import DOMAIN, COORDINATOR
+from .const import (
+    DOMAIN, 
+    COORDINATOR, 
+    DEFAULT_ICON,
+    ATTR_IDENTIFIERS,
+    ATTR_MANUFACTURER,
+    ATTR_MODEL,
+    ATTR_SW_VERSION,
+    DEV_MANUFACTURER,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +35,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entity = GoogleWifiBinarySensor(
             coordinator=coordinator,
             name=f"Google Wifi System {system_id}",
-            icon="mdi:wifi",
+            icon=DEFAULT_ICON,
             system_id=system_id,
             item_id=None,
         )
@@ -35,7 +45,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             entity = GoogleWifiBinarySensor(
                 coordinator=coordinator,
                 name=f"{access_point['accessPointSettings']['accessPointOtherSettings']['roomData']['name']} Access Point",
-                icon="mdi:wifi",
+                icon=DEFAULT_ICON,
                 system_id=system_id,
                 item_id=ap_id,
             )
@@ -69,6 +79,28 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
                 state = True
 
         return state
+
+    @property
+    def device_info(self):
+        """Define the device as an individual Google WiFi system."""
+        
+        device_info = {
+            ATTR_MANUFACTURER: DEV_MANUFACTURER,
+            ATTR_NAME: self._name,
+        }
+
+        if self._item_id:
+            device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._item_id)}
+            this_data = self.coordinator.data[self._system_id]["access_points"][self._item_id]
+            device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"]["hardwareType"]
+            device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"]["firmwareVersion"]
+
+        else:
+            device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
+            device_info[ATTR_MODEL] = "Google Wifi"
+            device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id]["groupProperties"]["otherProperties"]["firmwareVersion"]
+
+        return device_info
 
     async def async_reset_device(self):
         """Reset the network or specific access point."""

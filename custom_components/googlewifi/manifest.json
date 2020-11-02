@@ -4,7 +4,7 @@
     "config_flow": true,
     "documentation": "https://github.com/djtimca/hagooglewifi",
     "requirements": [
-      "googlewifi==0.0.1"
+      "googlewifi==0.0.2"
     ],
     "ssdp": [],
     "zeroconf": [],

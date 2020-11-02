@@ -10,7 +10,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
-from homeassistant.const import ATTR_NAME
 
 from googlewifi import GoogleWifi
 
@@ -20,15 +19,12 @@ from .const import (
     GOOGLEWIFI_API,
     POLLING_INTERVAL,
     REFRESH_TOKEN,
-    ATTR_IDENTIFIERS,
-    ATTR_MANUFACTURER,
-    ATTR_MODEL,
 )
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["binary_sensor"]
+PLATFORMS = ["binary_sensor", "device_tracker"]
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Google WiFi component."""
@@ -169,14 +165,3 @@ class GoogleWifiEntity(CoordinatorEntity):
     def device_state_attributes(self):
         """Return the attributes."""
         return self._attrs
-
-    @property
-    def device_info(self):
-        """Define the device as an individual Google WiFi system."""
-
-        return {
-            ATTR_IDENTIFIERS: {(DOMAIN, self._system_id)},
-            ATTR_NAME: f"Google Wifi System {self._system_id}",
-            ATTR_MANUFACTURER: "Google",
-            ATTR_MODEL: "WiFi",
-        }
