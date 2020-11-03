@@ -1,11 +1,10 @@
 """Definition and setup of the Google Wifi Sensors for Home Assistant."""
 
-import voluptuous as vol
 import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.helpers import config_validation as cv, entity_platform
+from homeassistant.helpers import entity_platform
 from homeassistant.const import ATTR_NAME
 
 from . import GoogleWiFiUpdater, GoogleWifiEntity

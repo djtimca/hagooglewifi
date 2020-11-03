@@ -4,3 +4,20 @@ reset:
     entity_id:
       description: Access point or system to restart
       example: binary_sensor.this_access_point
+
+prioritize:
+  description: Prioritize a Google Wifi Client Device for x hours
+  fields:
+    entity_id:
+      description: The entity ID of the device you would like to prioritize.
+      example: switch.iPhone
+    duration:
+      description: The duration in hours that you would like the prioritization to last.
+      example: 4
+
+prioritize_reset:
+  description: Clear any device prioritizations on the Google Wifi system.
+  fields:
+    entity_id:
+      description: A switch entity ID from the Google Wifi System you want to clear.
+      example: switch.iPhone
