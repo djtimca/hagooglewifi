@@ -1,11 +1,7 @@
 """Support for Google Wifi Routers as device tracker."""
 import logging
 
-from homeassistant.components.device_tracker.config_entry import ScannerEntity
-from homeassistant.components.device_tracker.const import (
-    DOMAIN as DEVICE_TRACKER,
-    SOURCE_TYPE_ROUTER,
-)
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import ATTR_NAME
 
 from . import GoogleWiFiUpdater, GoogleWifiEntity
@@ -24,7 +20,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the device tracker platforms."""
+    """Set up the switch platform."""
 
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     entities = []
@@ -36,7 +32,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             if device.get("friendlyType"):
                 device_name = device_name + f" ({device['friendlyType']})"
 
-            entity = GoogleWifiDeviceTracker(
+            entity = GoogleWifiSwitch(
                 coordinator=coordinator,
                 name=device_name,
                 icon=DEFAULT_ICON,
@@ -47,28 +43,24 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
-class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
-    """Defines a Google WiFi device tracker."""
+class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
+    """Defines a Google WiFi switch."""
 
     @property
-    def is_connected(self):
-        """Return true if the device is connected."""
-        if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected"):
-            connected_ap = self.coordinator.data[self._system_id]["devices"][self._item_id].get("apId")
-            if connected_ap:
-                connected_ap = self.coordinator.data[self._system_id]["access_points"][connected_ap]["accessPointSettings"]["accessPointOtherSettings"]["roomData"]["name"]
-                self._attrs["connected_ap"] = connected_ap
-            else:
-                self._attrs["connected_ap"] = "NA"
+    def is_on(self):
+        """Return the status of the internet for this device."""
+        if self.coordinator.data[self._system_id]["devices"][self._item_id]["paused"]:
+            return False
+        else:
+            return True
 
+    @property
+    def available(self):
+        """Switch is not available if it is not connected."""
+        if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected") == True:
             return True
         else:
             return False
-
-    @property
-    def source_type(self):
-        """Return the source type of the client."""
-        return SOURCE_TYPE_ROUTER
 
     @property
     def device_info(self):
@@ -82,4 +74,17 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
         }    
         
         return device_info
+
+    async def async_turn_on(self, **kwargs):
+        """Turn on (unpause) internet to the client."""
+        success = await self.coordinator.api.pause_device(self._system_id, self._item_id, False)
         
+        #if success:
+        #    self.async_schedule_update_ha_state()
+    
+    async def async_turn_off(self, **kwargs):
+        """Turn on (pause) internet to the client."""
+        success = await self.coordinator.api.pause_device(self._system_id, self._item_id, True)
+        
+        #if success:
+        #    self.async_schedule_update_ha_state()

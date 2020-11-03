@@ -24,7 +24,7 @@ from .const import (
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["binary_sensor", "device_tracker"]
+PLATFORMS = ["binary_sensor", "device_tracker", "switch"]
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Google WiFi component."""
