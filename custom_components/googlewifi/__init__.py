@@ -11,7 +11,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Coor
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
 
-from googlewifi import GoogleWifi
+from googlewifi import GoogleWifi, GoogleWifiException
 
 from .const import (
     DOMAIN, 
@@ -56,6 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         api=api,
         name="GoogleWifi",
         polling_interval=polling_interval,
+        refresh_token=conf[REFRESH_TOKEN],
     )
 
     await coordinator.async_refresh()
@@ -100,9 +101,11 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         api: str,
         name: str,
         polling_interval: int,
+        refresh_token: str,
     ):
         """Initialize the global Google Wifi data updater."""
         self.api = api
+        self.refresh_token = refresh_token
 
         super().__init__(
             hass = hass,
@@ -116,6 +119,10 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
 
         try:
             system_data = await self.api.get_systems()
+        except GoogleWifiException as error:
+            _LOGGER.error(f"Google Connection Error. Creating new session.")
+            session = aiohttp_client.async_create_clientsession(self.hass)
+            self.api = GoogleWifi(refresh_token=self.refresh_token, session=session)
         except ConnectionError as error:
             _LOGGER.info(f"Google Wifi API: {error}")
             raise PlatformNotReady from error

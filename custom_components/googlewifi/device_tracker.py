@@ -55,6 +55,13 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
     def is_connected(self):
         """Return true if the device is connected."""
         if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected"):
+            connected_ap = self.coordinator.data[self._system_id]["devices"][self._item_id].get("apId")
+            if connected_ap:
+                connected_ap = self.coordinator.data[self._system_id]["access_points"][connected_ap]["accessPointSettings"]["accessPointOtherSettings"]["roomData"]["name"]
+                self._attrs["connected_ap"] = connected_ap
+            else:
+                self._attrs["connected_ap"] = "NA"
+                
             return True
         else:
             return False
@@ -72,6 +79,7 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
             ATTR_NAME: self._name,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
+            "via_device": (DOMAIN, self._system_id)
         }    
         
         return device_info

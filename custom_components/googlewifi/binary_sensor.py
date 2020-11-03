@@ -94,7 +94,7 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
             this_data = self.coordinator.data[self._system_id]["access_points"][self._item_id]
             device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"]["hardwareType"]
             device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"]["firmwareVersion"]
-
+            device_info["via_device"] = (DOMAIN, self._system_id)
         else:
             device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
             device_info[ATTR_MODEL] = "Google Wifi"
