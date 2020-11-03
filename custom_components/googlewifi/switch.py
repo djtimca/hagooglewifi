@@ -1,4 +1,4 @@
-"""Support for Google Wifi Routers as device tracker."""
+"""Support for Google Wifi Connected Devices as Switch Internet on/off."""
 import logging
 
 from homeassistant.components.switch import SwitchEntity
@@ -79,12 +79,12 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
         """Turn on (unpause) internet to the client."""
         success = await self.coordinator.api.pause_device(self._system_id, self._item_id, False)
         
-        #if success:
-        #    self.async_schedule_update_ha_state()
+        if success:
+            self.async_schedule_update_ha_state()
     
     async def async_turn_off(self, **kwargs):
         """Turn on (pause) internet to the client."""
         success = await self.coordinator.api.pause_device(self._system_id, self._item_id, True)
         
-        #if success:
-        #    self.async_schedule_update_ha_state()
+        if success:
+            self.async_schedule_update_ha_state()

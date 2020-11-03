@@ -24,7 +24,7 @@ from .const import (
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["binary_sensor", "device_tracker", "switch"]
+PLATFORMS = ["binary_sensor", "device_tracker", "switch", "light"]
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Google WiFi component."""
@@ -120,9 +120,10 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         try:
             system_data = await self.api.get_systems()
         except GoogleWifiException as error:
-            _LOGGER.error(f"Google Connection Error. Creating new session.")
+            _LOGGER.info(f"Google Connection Error. Creating new session.")
             session = aiohttp_client.async_create_clientsession(self.hass)
             self.api = GoogleWifi(refresh_token=self.refresh_token, session=session)
+            raise PlatformNotReady from error
         except ConnectionError as error:
             _LOGGER.info(f"Google Wifi API: {error}")
             raise PlatformNotReady from error
