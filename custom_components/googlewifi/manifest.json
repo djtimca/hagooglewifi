@@ -6,6 +6,7 @@
     "requirements": [
       "googlewifi==0.0.7"
     ],
+    "issue_tracker": "https://github.com/djtimca/hagooglewifi/issues",
     "ssdp": [],
     "zeroconf": [],
     "homekit": {},
