@@ -80,6 +80,19 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
 
         return SUPPORT_BRIGHTNESS
 
+    @property
+    def device_info(self):
+        """Define the device as a device tracker system."""
+        device_info =  {
+            ATTR_IDENTIFIERS: {(DOMAIN, self._item_id)},
+            ATTR_NAME: self._name,
+            ATTR_MANUFACTURER: "Google",
+            ATTR_MODEL: DEV_CLIENT_MODEL,
+            "via_device": (DOMAIN, self._system_id)
+        }    
+        
+        return device_info
+
     async def async_turn_on(self, **kwargs):
         """Turn on the light."""
         brightness_pct = 50
