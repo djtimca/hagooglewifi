@@ -74,7 +74,7 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
         is_prioritized = False
         is_prioritized_end = "NA"
 
-        if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"].get("prioritizedStation"):
+        if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"].get("prioritizedStation").get("stationId"):
             if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"]["prioritizedStation"]["stationId"] == self._item_id:
                 is_prioritized = True
                 end_time = self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"]["prioritizedStation"]["prioritizationEndTime"]
