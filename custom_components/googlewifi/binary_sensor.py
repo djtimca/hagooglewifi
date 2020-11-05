@@ -1,7 +1,5 @@
 """Definition and setup of the Google Wifi Sensors for Home Assistant."""
 
-import logging
-
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.helpers import entity_platform
@@ -19,8 +17,6 @@ from .const import (
     ATTR_SW_VERSION,
     DEV_MANUFACTURER,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 SERVICE_RESET = "reset"
 
@@ -63,43 +59,65 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
     """Defines a Google WiFi sensor."""
+    def __init__(self, coordinator, name, icon, system_id, item_id):
+        """Initialize the sensor."""
+        super().__init__(
+            coordinator=coordinator,
+            name=name,
+            icon=icon,
+            system_id=system_id,
+            item_id=item_id,
+        )
+
+        self._state=None
+        self._device_info=None
 
     @property
     def is_on(self) -> bool:
         """Return the on/off state of the sensor."""
 
-        state = False
+        try:
+            state = False
 
-        if self._item_id:
-            if self.coordinator.data[self._system_id]["access_points"][self._item_id]["status"] == "AP_ONLINE":
-                state = True
-        else:
-            if self.coordinator.data[self._system_id]["status"] == "WAN_ONLINE":
-                state = True
+            if self._item_id:
+                if self.coordinator.data[self._system_id]["access_points"][self._item_id]["status"] == "AP_ONLINE":
+                    state = True
+            else:
+                if self.coordinator.data[self._system_id]["status"] == "WAN_ONLINE":
+                    state = True
 
-        return state
+            self._state = state
+        except TypeError:
+            pass
+
+        return self._state
 
     @property
     def device_info(self):
         """Define the device as an individual Google WiFi system."""
-        
-        device_info = {
-            ATTR_MANUFACTURER: DEV_MANUFACTURER,
-            ATTR_NAME: self._name,
-        }
+                
+        try:
+            device_info = {
+                ATTR_MANUFACTURER: DEV_MANUFACTURER,
+                ATTR_NAME: self._name,
+            }
 
-        if self._item_id:
-            device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._item_id)}
-            this_data = self.coordinator.data[self._system_id]["access_points"][self._item_id]
-            device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"]["hardwareType"]
-            device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"]["firmwareVersion"]
-            device_info["via_device"] = (DOMAIN, self._system_id)
-        else:
-            device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
-            device_info[ATTR_MODEL] = "Google Wifi"
-            device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id]["groupProperties"]["otherProperties"]["firmwareVersion"]
+            if self._item_id:
+                device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._item_id)}
+                this_data = self.coordinator.data[self._system_id]["access_points"][self._item_id]
+                device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"]["hardwareType"]
+                device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"]["firmwareVersion"]
+                device_info["via_device"] = (DOMAIN, self._system_id)
+            else:
+                device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
+                device_info[ATTR_MODEL] = "Google Wifi"
+                device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id]["groupProperties"]["otherProperties"]["firmwareVersion"]
 
-        return device_info
+            self._device_info = device_info
+        except TypeError:
+            pass
+
+        return self._device_info
 
     async def async_reset_device(self):
         """Reset the network or specific access point."""

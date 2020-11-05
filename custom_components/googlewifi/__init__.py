@@ -123,7 +123,6 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         except GoogleWifiException as error:
             session = aiohttp_client.async_create_clientsession(self.hass)
             self.api = GoogleWifi(refresh_token=self.refresh_token, session=session)
-            raise UpdateFailed(f"Error updating from GoogleWifi: {error}") from error
         except ConnectionError as error:
             raise PlatformNotReady(f"Error connecting to GoogleWifi: {error}") from error
         except ValueError as error:

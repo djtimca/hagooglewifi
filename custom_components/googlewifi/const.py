@@ -12,3 +12,4 @@ REFRESH_TOKEN = "refresh_token"
 DEV_MANUFACTURER = "Google"
 DEV_CLIENT_MODEL = "Connected Client"
 DEFAULT_ICON = "mdi:wifi"
+PAUSE_UPDATE = 10

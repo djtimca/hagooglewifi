@@ -1,5 +1,4 @@
 """Support for Google Wifi Routers as device tracker."""
-import logging
 
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.components.device_tracker.const import (
@@ -20,8 +19,6 @@ from .const import (
     DEV_MANUFACTURER,
     DEV_CLIENT_MODEL,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the device tracker platforms."""
@@ -50,23 +47,40 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
     """Defines a Google WiFi device tracker."""
 
+    def __init__(self, coordinator, name, icon, system_id, item_id):
+        """Initialize the device tracker."""
+        super().__init__(
+            coordinator=coordinator,
+            name=name,
+            icon=icon,
+            system_id=system_id,
+            item_id=item_id,
+        )
+
+        self._is_connected = None
+
     @property
     def is_connected(self):
         """Return true if the device is connected."""
-        if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected"):
-            connected_ap = self.coordinator.data[self._system_id]["devices"][self._item_id].get("apId")
-            if connected_ap:
-                connected_ap = self.coordinator.data[self._system_id]["access_points"][connected_ap]["accessPointSettings"]["accessPointOtherSettings"]["roomData"]["name"]
-                self._attrs["connected_ap"] = connected_ap
+        try:
+            if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected"):
+                connected_ap = self.coordinator.data[self._system_id]["devices"][self._item_id].get("apId")
+                if connected_ap:
+                    connected_ap = self.coordinator.data[self._system_id]["access_points"][connected_ap]["accessPointSettings"]["accessPointOtherSettings"]["roomData"]["name"]
+                    self._attrs["connected_ap"] = connected_ap
+                else:
+                    self._attrs["connected_ap"] = "NA"
+
+                if self.coordinator.data[self._system_id]["devices"][self._item_id].get("ipAddresses"):
+                    self._attrs["ip_address"] = self.coordinator.data[self._system_id]["devices"][self._item_id]["ipAddresses"][0]
+
+                self._is_connected = True
             else:
-                self._attrs["connected_ap"] = "NA"
-
-            if self.coordinator.data[self._system_id]["devices"][self._item_id].get("ipAddresses"):
-                self._attrs["ip_address"] = self.coordinator.data[self._system_id]["devices"][self._item_id]["ipAddresses"][0]
-
-            return True
-        else:
-            return False
+                self._is_connected = False
+        except TypeError:
+            pass
+        
+        return self._is_connected
 
     @property
     def source_type(self):
