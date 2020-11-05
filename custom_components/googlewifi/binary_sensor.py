@@ -1,24 +1,24 @@
 """Definition and setup of the Google Wifi Sensors for Home Assistant."""
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.helpers import entity_platform
 from homeassistant.const import ATTR_NAME
+from homeassistant.helpers import entity_platform
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from . import GoogleWiFiUpdater, GoogleWifiEntity
-
+from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN, 
-    COORDINATOR, 
-    DEFAULT_ICON,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
     ATTR_SW_VERSION,
+    COORDINATOR,
+    DEFAULT_ICON,
     DEV_MANUFACTURER,
+    DOMAIN,
 )
 
 SERVICE_RESET = "reset"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the binary sensor platforms."""
@@ -48,7 +48,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
-    #register service for reset
+    # register service for reset
     platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
@@ -56,6 +56,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         {},
         "async_reset_device",
     )
+
 
 class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
     """Defines a Google WiFi sensor."""

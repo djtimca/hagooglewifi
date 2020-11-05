@@ -2,27 +2,27 @@
 import voluptuous as vol
 import time
 
-from homeassistant.util.dt import as_local, parse_datetime
+import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import ATTR_NAME
-from homeassistant.helpers import config_validation as cv, entity_platform
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import entity_platform
+from homeassistant.util.dt import as_local, parse_datetime
 
-from . import GoogleWiFiUpdater, GoogleWifiEntity
-
+from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN, 
-    COORDINATOR, 
-    DEFAULT_ICON,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
-    DEV_MANUFACTURER,
+    COORDINATOR,
+    DEFAULT_ICON,
     DEV_CLIENT_MODEL,
     PAUSE_UPDATE,
 )
 
 SERVICE_PRIORITIZE = "prioritize"
 SERVICE_CLEAR_PRIORITIZATION = "prioritize_reset"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the switch platform."""
@@ -48,7 +48,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
-    #register service for reset
+    # register service for reset
     platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
@@ -62,6 +62,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         {},
         "async_clear_prioritization",
     )
+
 
 class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
     """Defines a Google WiFi switch."""
@@ -98,7 +99,7 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
 
                 self._attrs["prioritized"] = is_prioritized
                 self._attrs["prioritized_end"] = is_prioritized_end
-
+        
                 if self.coordinator.data[self._system_id]["devices"][self._item_id]["paused"]:
                     self._state = False
                 else:
@@ -124,14 +125,14 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
     @property
     def device_info(self):
         """Define the device as a device tracker system."""
-        device_info =  {
+        device_info = {
             ATTR_IDENTIFIERS: {(DOMAIN, self._item_id)},
             ATTR_NAME: self._name,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
-            "via_device": (DOMAIN, self._system_id)
-        }    
-        
+            "via_device": (DOMAIN, self._system_id),
+        }
+
         return device_info
 
     async def async_turn_on(self, **kwargs):

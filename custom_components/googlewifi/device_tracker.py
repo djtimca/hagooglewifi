@@ -1,23 +1,20 @@
 """Support for Google Wifi Routers as device tracker."""
 
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
-from homeassistant.components.device_tracker.const import (
-    DOMAIN as DEVICE_TRACKER,
-    SOURCE_TYPE_ROUTER,
-)
+from homeassistant.components.device_tracker.const import DOMAIN as DEVICE_TRACKER
+from homeassistant.components.device_tracker.const import SOURCE_TYPE_ROUTER
 from homeassistant.const import ATTR_NAME
 
-from . import GoogleWiFiUpdater, GoogleWifiEntity
-
+from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN, 
-    COORDINATOR, 
-    DEFAULT_ICON,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
-    DEV_MANUFACTURER,
+    COORDINATOR,
+    DEFAULT_ICON,
     DEV_CLIENT_MODEL,
+    DEV_MANUFACTURER,
+    DOMAIN,
 )
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -43,6 +40,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             entities.append(entity)
 
     async_add_entities(entities)
+
 
 class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
     """Defines a Google WiFi device tracker."""
@@ -90,12 +88,12 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
     @property
     def device_info(self):
         """Define the device as a device tracker system."""
-        device_info =  {
+        device_info = {
             ATTR_IDENTIFIERS: {(DOMAIN, self._item_id)},
             ATTR_NAME: self._name,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
-            "via_device": (DOMAIN, self._system_id)
-        }    
-        
+            "via_device": (DOMAIN, self._system_id),
+        }
+
         return device_info
