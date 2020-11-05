@@ -1,5 +1,4 @@
 """Support for Google Wifi Connected Devices as Switch Internet on/off."""
-import voluptuous as vol
 import time
 
 import voluptuous as vol
@@ -18,6 +17,7 @@ from .const import (
     COORDINATOR,
     DEFAULT_ICON,
     DEV_CLIENT_MODEL,
+    DOMAIN,
     PAUSE_UPDATE,
 )
 
@@ -92,16 +92,33 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
                 is_prioritized = False
                 is_prioritized_end = "NA"
 
-                if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"].get("prioritizedStation").get("stationId"):
-                    if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"]["prioritizedStation"]["stationId"] == self._item_id:
+                if (
+                    self.coordinator.data[self._system_id]["groupSettings"][
+                        "lanSettings"
+                    ]
+                    .get("prioritizedStation")
+                    .get("stationId")
+                ):
+                    if (
+                        self.coordinator.data[self._system_id]["groupSettings"][
+                            "lanSettings"
+                        ]["prioritizedStation"]["stationId"]
+                        == self._item_id
+                    ):
                         is_prioritized = True
-                        end_time = self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"]["prioritizedStation"]["prioritizationEndTime"]
-                        is_prioritized_end = as_local(parse_datetime(end_time)).strftime("%d-%b-%y %I:%M %p")
+                        end_time = self.coordinator.data[self._system_id][
+                            "groupSettings"
+                        ]["lanSettings"]["prioritizedStation"]["prioritizationEndTime"]
+                        is_prioritized_end = as_local(
+                            parse_datetime(end_time)
+                        ).strftime("%d-%b-%y %I:%M %p")
 
                 self._attrs["prioritized"] = is_prioritized
                 self._attrs["prioritized_end"] = is_prioritized_end
-        
-                if self.coordinator.data[self._system_id]["devices"][self._item_id]["paused"]:
+
+                if self.coordinator.data[self._system_id]["devices"][self._item_id][
+                    "paused"
+                ]:
                     self._state = False
                 else:
                     self._state = True
@@ -114,7 +131,12 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
     def available(self):
         """Switch is not available if it is not connected."""
         try:
-            if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected") == True:
+            if (
+                self.coordinator.data[self._system_id]["devices"][self._item_id].get(
+                    "connected"
+                )
+                == True
+            ):
                 self._available = True
             else:
                 self._available = False

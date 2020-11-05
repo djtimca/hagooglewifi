@@ -17,8 +17,10 @@ from .const import (
     COORDINATOR,
     DEFAULT_ICON,
     DEV_CLIENT_MODEL,
+    DOMAIN,
     PAUSE_UPDATE,
 )
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the light platform."""
@@ -61,11 +63,13 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
     @property
     def is_on(self):
         since_last = int(time.time()) - self._last_change
-        
+
         if since_last > PAUSE_UPDATE:
             """Return the on/off state of the light."""
             try:
-                if self.coordinator.data[self._system_id]["access_points"][self._item_id]["accessPointSettings"]["lightingSettings"].get("intensity"):
+                if self.coordinator.data[self._system_id]["access_points"][
+                    self._item_id
+                ]["accessPointSettings"]["lightingSettings"].get("intensity"):
                     self._state = True
                 else:
                     self._state = False
@@ -73,7 +77,7 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
                 pass
 
         return self._state
-    
+
     @property
     def brightness(self):
         """Return the current brightness of the light."""
@@ -81,7 +85,9 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
 
         if since_last > PAUSE_UPDATE:
             try:
-                brightness = self.coordinator.data[self._system_id]["access_points"][self._item_id]["accessPointSettings"]["lightingSettings"].get("intensity")
+                brightness = self.coordinator.data[self._system_id]["access_points"][
+                    self._item_id
+                ]["accessPointSettings"]["lightingSettings"].get("intensity")
 
                 if brightness:
                     if brightness > 0:
@@ -119,7 +125,9 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
         brightness_pct = 50
 
         if self._last_brightness:
-            brightness_pct = self._last_brightness if self._last_brightness > 0 else brightness_pct
+            brightness_pct = (
+                self._last_brightness if self._last_brightness > 0 else brightness_pct
+            )
 
         if kwargs.get(ATTR_BRIGHTNESS):
             brightness_pct = kwargs[ATTR_BRIGHTNESS]
