@@ -73,6 +73,19 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
         self._state=None
         self._device_info=None
 
+    def __init__(self, coordinator, name, icon, system_id, item_id):
+        """Initialize the sensor."""
+        super().__init__(
+            coordinator=coordinator,
+            name=name,
+            icon=icon,
+            system_id=system_id,
+            item_id=item_id,
+        )
+
+        self._state = None
+        self._device_info = None
+
     @property
     def is_on(self) -> bool:
         """Return the on/off state of the sensor."""
