@@ -1,16 +1,15 @@
 """Config flow for Google Wifi."""
 import logging
+
 import voluptuous as vol
-
 from googlewifi import GoogleWifi
-
 from homeassistant import config_entries
-from homeassistant.helpers import config_entry_flow
-from homeassistant.helpers import aiohttp_client
+from homeassistant.helpers import aiohttp_client, config_entry_flow
 
 from .const import DOMAIN, REFRESH_TOKEN
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for GoogleWifi."""
@@ -31,7 +30,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             token = user_input[REFRESH_TOKEN]
             api_client = GoogleWifi(token, session)
-            
+
             try:
                 await api_client.connect()
             except ValueError:

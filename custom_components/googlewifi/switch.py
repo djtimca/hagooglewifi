@@ -1,29 +1,29 @@
 """Support for Google Wifi Connected Devices as Switch Internet on/off."""
-import logging
-import voluptuous as vol
+import time
 
-from homeassistant.util.dt import as_local, parse_datetime
+import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import ATTR_NAME
-from homeassistant.helpers import config_validation as cv, entity_platform
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import entity_platform
+from homeassistant.util.dt import as_local, parse_datetime
 
-from . import GoogleWiFiUpdater, GoogleWifiEntity
-
+from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN, 
-    COORDINATOR, 
-    DEFAULT_ICON,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
-    DEV_MANUFACTURER,
+    COORDINATOR,
+    DEFAULT_ICON,
     DEV_CLIENT_MODEL,
+    DEV_MANUFACTURER,
+    DOMAIN,
+    PAUSE_UPDATE,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 SERVICE_PRIORITIZE = "prioritize"
 SERVICE_CLEAR_PRIORITIZATION = "prioritize_reset"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the switch platform."""
@@ -49,7 +49,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
-    #register service for reset
+    # register service for reset
     platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
@@ -64,59 +64,112 @@ async def async_setup_entry(hass, entry, async_add_entities):
         "async_clear_prioritization",
     )
 
+
 class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
     """Defines a Google WiFi switch."""
+
+    def __init__(self, coordinator, name, icon, system_id, item_id):
+        """Initialize the switch."""
+        super().__init__(
+            coordinator=coordinator,
+            name=name,
+            icon=icon,
+            system_id=system_id,
+            item_id=item_id,
+        )
+
+        self._state = None
+        self._available = None
+        self._last_change = 0
 
     @property
     def is_on(self):
         """Return the status of the internet for this device."""
+        since_last = int(time.time()) - self._last_change
 
-        is_prioritized = False
-        is_prioritized_end = "NA"
+        if since_last > PAUSE_UPDATE:
+            try:
+                is_prioritized = False
+                is_prioritized_end = "NA"
 
-        if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"].get("prioritizedStation").get("stationId"):
-            if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"]["prioritizedStation"]["stationId"] == self._item_id:
-                is_prioritized = True
-                end_time = self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"]["prioritizedStation"]["prioritizationEndTime"]
-                is_prioritized_end = as_local(parse_datetime(end_time)).strftime("%d-%b-%y %I:%M %p")
+                if (
+                    self.coordinator.data[self._system_id]["groupSettings"][
+                        "lanSettings"
+                    ]
+                    .get("prioritizedStation")
+                    .get("stationId")
+                ):
+                    if (
+                        self.coordinator.data[self._system_id]["groupSettings"][
+                            "lanSettings"
+                        ]["prioritizedStation"]["stationId"]
+                        == self._item_id
+                    ):
+                        is_prioritized = True
+                        end_time = self.coordinator.data[self._system_id][
+                            "groupSettings"
+                        ]["lanSettings"]["prioritizedStation"]["prioritizationEndTime"]
+                        is_prioritized_end = as_local(
+                            parse_datetime(end_time)
+                        ).strftime("%d-%b-%y %I:%M %p")
 
-        self._attrs["prioritized"] = is_prioritized
-        self._attrs["prioritized_end"] = is_prioritized_end
+                self._attrs["prioritized"] = is_prioritized
+                self._attrs["prioritized_end"] = is_prioritized_end
 
-        if self.coordinator.data[self._system_id]["devices"][self._item_id]["paused"]:
-            return False
-        else:
-            return True
+                if self.coordinator.data[self._system_id]["devices"][self._item_id][
+                    "paused"
+                ]:
+                    self._state = False
+                else:
+                    self._state = True
+            except TypeError:
+                pass
+
+        return self._state
 
     @property
     def available(self):
         """Switch is not available if it is not connected."""
-        if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected") == True:
-            return True
-        else:
-            return False
+        try:
+            if (
+                self.coordinator.data[self._system_id]["devices"][self._item_id].get(
+                    "connected"
+                )
+                == True
+            ):
+                self._available = True
+            else:
+                self._available = False
+        except TypeError:
+            pass
+
+        return self._available
 
     @property
     def device_info(self):
         """Define the device as a device tracker system."""
-        device_info =  {
+        device_info = {
             ATTR_IDENTIFIERS: {(DOMAIN, self._item_id)},
             ATTR_NAME: self._name,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
-            "via_device": (DOMAIN, self._system_id)
-        }    
-        
+            "via_device": (DOMAIN, self._system_id),
+        }
+
         return device_info
 
     async def async_turn_on(self, **kwargs):
         """Turn on (unpause) internet to the client."""
+        self._state = True
+        self._last_change = time.time()
         await self.coordinator.api.pause_device(self._system_id, self._item_id, False)
-        
+
     async def async_turn_off(self, **kwargs):
         """Turn on (pause) internet to the client."""
+        self._state = False
+        self._last_change = time.time()
         await self.coordinator.api.pause_device(self._system_id, self._item_id, True)
-        
+
     async def async_prioritize_device(self, duration):
         """Prioritize a device for (optional) x hours."""
 

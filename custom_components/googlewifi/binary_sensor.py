@@ -1,28 +1,24 @@
 """Definition and setup of the Google Wifi Sensors for Home Assistant."""
 
-import logging
-
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.helpers import entity_platform
 from homeassistant.const import ATTR_NAME
+from homeassistant.helpers import entity_platform
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from . import GoogleWiFiUpdater, GoogleWifiEntity
-
+from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN, 
-    COORDINATOR, 
-    DEFAULT_ICON,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
     ATTR_SW_VERSION,
+    COORDINATOR,
+    DEFAULT_ICON,
     DEV_MANUFACTURER,
+    DOMAIN,
 )
 
-_LOGGER = logging.getLogger(__name__)
-
 SERVICE_RESET = "reset"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the binary sensor platforms."""
@@ -52,7 +48,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
-    #register service for reset
+    # register service for reset
     platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
@@ -61,45 +57,82 @@ async def async_setup_entry(hass, entry, async_add_entities):
         "async_reset_device",
     )
 
+
 class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
     """Defines a Google WiFi sensor."""
+
+    def __init__(self, coordinator, name, icon, system_id, item_id):
+        """Initialize the sensor."""
+        super().__init__(
+            coordinator=coordinator,
+            name=name,
+            icon=icon,
+            system_id=system_id,
+            item_id=item_id,
+        )
+
+        self._state = None
+        self._device_info = None
 
     @property
     def is_on(self) -> bool:
         """Return the on/off state of the sensor."""
 
-        state = False
+        try:
+            state = False
 
-        if self._item_id:
-            if self.coordinator.data[self._system_id]["access_points"][self._item_id]["status"] == "AP_ONLINE":
-                state = True
-        else:
-            if self.coordinator.data[self._system_id]["status"] == "WAN_ONLINE":
-                state = True
+            if self._item_id:
+                if (
+                    self.coordinator.data[self._system_id]["access_points"][
+                        self._item_id
+                    ]["status"]
+                    == "AP_ONLINE"
+                ):
+                    state = True
+            else:
+                if self.coordinator.data[self._system_id]["status"] == "WAN_ONLINE":
+                    state = True
 
-        return state
+            self._state = state
+        except TypeError:
+            pass
+
+        return self._state
 
     @property
     def device_info(self):
         """Define the device as an individual Google WiFi system."""
-        
-        device_info = {
-            ATTR_MANUFACTURER: DEV_MANUFACTURER,
-            ATTR_NAME: self._name,
-        }
 
-        if self._item_id:
-            device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._item_id)}
-            this_data = self.coordinator.data[self._system_id]["access_points"][self._item_id]
-            device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"]["hardwareType"]
-            device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"]["firmwareVersion"]
-            device_info["via_device"] = (DOMAIN, self._system_id)
-        else:
-            device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
-            device_info[ATTR_MODEL] = "Google Wifi"
-            device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id]["groupProperties"]["otherProperties"]["firmwareVersion"]
+        try:
+            device_info = {
+                ATTR_MANUFACTURER: DEV_MANUFACTURER,
+                ATTR_NAME: self._name,
+            }
 
-        return device_info
+            if self._item_id:
+                device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._item_id)}
+                this_data = self.coordinator.data[self._system_id]["access_points"][
+                    self._item_id
+                ]
+                device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"][
+                    "hardwareType"
+                ]
+                device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"][
+                    "firmwareVersion"
+                ]
+                device_info["via_device"] = (DOMAIN, self._system_id)
+            else:
+                device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
+                device_info[ATTR_MODEL] = "Google Wifi"
+                device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id][
+                    "groupProperties"
+                ]["otherProperties"]["firmwareVersion"]
+
+            self._device_info = device_info
+        except TypeError:
+            pass
+
+        return self._device_info
 
     async def async_reset_device(self):
         """Reset the network or specific access point."""

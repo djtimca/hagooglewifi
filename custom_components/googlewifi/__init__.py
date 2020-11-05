@@ -1,36 +1,34 @@
 """The Google Wifi Integration for Home Assistant."""
 import asyncio
-
-import voluptuous as vol
 import logging
 from datetime import timedelta
 
+import voluptuous as vol
+from googlewifi import GoogleWifi, GoogleWifiException
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity, UpdateFailed
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
-
-from googlewifi import GoogleWifi, GoogleWifiException
-
-from .const import (
-    DOMAIN, 
-    COORDINATOR, 
-    GOOGLEWIFI_API,
-    POLLING_INTERVAL,
-    REFRESH_TOKEN,
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+    UpdateFailed,
 )
+
+from .const import COORDINATOR, DOMAIN, GOOGLEWIFI_API, POLLING_INTERVAL, REFRESH_TOKEN
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = ["binary_sensor", "device_tracker", "switch", "light"]
 
+
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Google WiFi component."""
     hass.data.setdefault(DOMAIN, {})
 
     return True
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Google WiFi component from a config entry."""
@@ -41,7 +39,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     session = aiohttp_client.async_get_clientsession(hass)
 
     api = GoogleWifi(refresh_token=conf[REFRESH_TOKEN], session=session)
-    
+
     try:
         await api.connect()
     except ConnectionError as error:
@@ -77,6 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     return True
 
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
     unload_ok = all(
@@ -91,6 +90,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
+
 
 class GoogleWiFiUpdater(DataUpdateCoordinator):
     """Class to manage fetching update data from the Google Wifi API."""
@@ -108,10 +108,10 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         self.refresh_token = refresh_token
 
         super().__init__(
-            hass = hass,
-            logger = _LOGGER,
-            name = name,
-            update_interval = timedelta(seconds=polling_interval),
+            hass=hass,
+            logger=_LOGGER,
+            name=name,
+            update_interval=timedelta(seconds=polling_interval),
         )
 
     async def _async_update_data(self):
@@ -123,11 +123,15 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         except GoogleWifiException as error:
             session = aiohttp_client.async_create_clientsession(self.hass)
             self.api = GoogleWifi(refresh_token=self.refresh_token, session=session)
-            raise UpdateFailed(f"Error updating from GoogleWifi: {error}") from error
         except ConnectionError as error:
-            raise PlatformNotReady(f"Error connecting to GoogleWifi: {error}") from error
+            raise PlatformNotReady(
+                f"Error connecting to GoogleWifi: {error}"
+            ) from error
         except ValueError as error:
-            raise ConfigEntryNotReady(f"Invalid data from GoogleWifi: {error}") from error
+            raise ConfigEntryNotReady(
+                f"Invalid data from GoogleWifi: {error}"
+            ) from error
+
 
 class GoogleWifiEntity(CoordinatorEntity):
     """Defines the base Google WiFi entity."""
