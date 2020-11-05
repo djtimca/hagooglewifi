@@ -17,6 +17,7 @@ from .const import (
     DOMAIN,
 )
 
+
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the device tracker platforms."""
 
@@ -61,23 +62,37 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
     def is_connected(self):
         """Return true if the device is connected."""
         try:
-            if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected"):
-                connected_ap = self.coordinator.data[self._system_id]["devices"][self._item_id].get("apId")
+            if self.coordinator.data[self._system_id]["devices"][self._item_id].get(
+                "connected"
+            ):
+                connected_ap = self.coordinator.data[self._system_id]["devices"][
+                    self._item_id
+                ].get("apId")
                 if connected_ap:
-                    connected_ap = self.coordinator.data[self._system_id]["access_points"][connected_ap]["accessPointSettings"]["accessPointOtherSettings"]["roomData"]["name"]
+                    connected_ap = self.coordinator.data[self._system_id][
+                        "access_points"
+                    ][connected_ap]["accessPointSettings"]["accessPointOtherSettings"][
+                        "roomData"
+                    ][
+                        "name"
+                    ]
                     self._attrs["connected_ap"] = connected_ap
                 else:
                     self._attrs["connected_ap"] = "NA"
 
-                if self.coordinator.data[self._system_id]["devices"][self._item_id].get("ipAddresses"):
-                    self._attrs["ip_address"] = self.coordinator.data[self._system_id]["devices"][self._item_id]["ipAddresses"][0]
+                if self.coordinator.data[self._system_id]["devices"][self._item_id].get(
+                    "ipAddresses"
+                ):
+                    self._attrs["ip_address"] = self.coordinator.data[self._system_id][
+                        "devices"
+                    ][self._item_id]["ipAddresses"][0]
 
                 self._is_connected = True
             else:
                 self._is_connected = False
         except TypeError:
             pass
-        
+
         return self._is_connected
 
     @property

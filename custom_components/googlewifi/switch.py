@@ -1,8 +1,4 @@
 """Support for Google Wifi Connected Devices as Switch Internet on/off."""
-<<<<<<< HEAD
-import voluptuous as vol
-=======
->>>>>>> d8e701979668c4981ea06352d7bce9f3712efee5
 import time
 
 import voluptuous as vol
@@ -20,11 +16,7 @@ from .const import (
     COORDINATOR,
     DEFAULT_ICON,
     DEV_CLIENT_MODEL,
-<<<<<<< HEAD
-=======
-    DEV_MANUFACTURER,
     DOMAIN,
->>>>>>> d8e701979668c4981ea06352d7bce9f3712efee5
     PAUSE_UPDATE,
 )
 
@@ -99,18 +91,6 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
                 is_prioritized = False
                 is_prioritized_end = "NA"
 
-<<<<<<< HEAD
-                if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"].get("prioritizedStation").get("stationId"):
-                    if self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"]["prioritizedStation"]["stationId"] == self._item_id:
-                        is_prioritized = True
-                        end_time = self.coordinator.data[self._system_id]["groupSettings"]["lanSettings"]["prioritizedStation"]["prioritizationEndTime"]
-                        is_prioritized_end = as_local(parse_datetime(end_time)).strftime("%d-%b-%y %I:%M %p")
-
-                self._attrs["prioritized"] = is_prioritized
-                self._attrs["prioritized_end"] = is_prioritized_end
-        
-                if self.coordinator.data[self._system_id]["devices"][self._item_id]["paused"]:
-=======
                 if (
                     self.coordinator.data[self._system_id]["groupSettings"][
                         "lanSettings"
@@ -138,7 +118,6 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
                 if self.coordinator.data[self._system_id]["devices"][self._item_id][
                     "paused"
                 ]:
->>>>>>> d8e701979668c4981ea06352d7bce9f3712efee5
                     self._state = False
                 else:
                     self._state = True
@@ -151,16 +130,12 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
     def available(self):
         """Switch is not available if it is not connected."""
         try:
-<<<<<<< HEAD
-            if self.coordinator.data[self._system_id]["devices"][self._item_id].get("connected") == True:
-=======
             if (
                 self.coordinator.data[self._system_id]["devices"][self._item_id].get(
                     "connected"
                 )
                 == True
             ):
->>>>>>> d8e701979668c4981ea06352d7bce9f3712efee5
                 self._available = True
             else:
                 self._available = False

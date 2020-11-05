@@ -60,6 +60,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
     """Defines a Google WiFi sensor."""
+
     def __init__(self, coordinator, name, icon, system_id, item_id):
         """Initialize the sensor."""
         super().__init__(
@@ -70,8 +71,8 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
             item_id=item_id,
         )
 
-        self._state=None
-        self._device_info=None
+        self._state = None
+        self._device_info = None
 
     def __init__(self, coordinator, name, icon, system_id, item_id):
         """Initialize the sensor."""
@@ -94,7 +95,12 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
             state = False
 
             if self._item_id:
-                if self.coordinator.data[self._system_id]["access_points"][self._item_id]["status"] == "AP_ONLINE":
+                if (
+                    self.coordinator.data[self._system_id]["access_points"][
+                        self._item_id
+                    ]["status"]
+                    == "AP_ONLINE"
+                ):
                     state = True
             else:
                 if self.coordinator.data[self._system_id]["status"] == "WAN_ONLINE":
@@ -109,7 +115,7 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
     @property
     def device_info(self):
         """Define the device as an individual Google WiFi system."""
-                
+
         try:
             device_info = {
                 ATTR_MANUFACTURER: DEV_MANUFACTURER,
@@ -118,14 +124,22 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
 
             if self._item_id:
                 device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._item_id)}
-                this_data = self.coordinator.data[self._system_id]["access_points"][self._item_id]
-                device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"]["hardwareType"]
-                device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"]["firmwareVersion"]
+                this_data = self.coordinator.data[self._system_id]["access_points"][
+                    self._item_id
+                ]
+                device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"][
+                    "hardwareType"
+                ]
+                device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"][
+                    "firmwareVersion"
+                ]
                 device_info["via_device"] = (DOMAIN, self._system_id)
             else:
                 device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
                 device_info[ATTR_MODEL] = "Google Wifi"
-                device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id]["groupProperties"]["otherProperties"]["firmwareVersion"]
+                device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id][
+                    "groupProperties"
+                ]["otherProperties"]["firmwareVersion"]
 
             self._device_info = device_info
         except TypeError:
