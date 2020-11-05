@@ -10,6 +10,7 @@ from homeassistant.const import ATTR_NAME
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
+    DOMAIN,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
@@ -118,7 +119,7 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
         brightness_pct = 50
 
         if self._last_brightness:
-            brightness_pct = self._last_brightness
+            brightness_pct = self._last_brightness if self._last_brightness > 0 else brightness_pct
 
         if kwargs.get(ATTR_BRIGHTNESS):
             brightness_pct = kwargs[ATTR_BRIGHTNESS]
