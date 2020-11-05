@@ -1,23 +1,27 @@
 """Support for Google Wifi Router light control."""
 import logging
 
-from homeassistant.components.light import SUPPORT_BRIGHTNESS, ATTR_BRIGHTNESS, LightEntity
+from homeassistant.components.light import (
+    ATTR_BRIGHTNESS,
+    SUPPORT_BRIGHTNESS,
+    LightEntity,
+)
 from homeassistant.const import ATTR_NAME
 
-from . import GoogleWiFiUpdater, GoogleWifiEntity
-
+from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN, 
-    COORDINATOR, 
-    DEFAULT_ICON,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
-    DEV_MANUFACTURER,
+    COORDINATOR,
+    DEFAULT_ICON,
     DEV_CLIENT_MODEL,
+    DEV_MANUFACTURER,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the light platform."""
@@ -38,17 +42,18 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
+
 class GoogleWifiLight(GoogleWifiEntity, LightEntity):
     """Defines a Google WiFi light."""
-    
+
     def __init__(self, coordinator, name, icon, system_id, item_id):
         """Initialize the entity."""
         super().__init__(
-            coordinator = coordinator,
-            name = name,
-            icon = icon,
-            system_id = system_id,
-            item_id = item_id,
+            coordinator=coordinator,
+            name=name,
+            icon=icon,
+            system_id=system_id,
+            item_id=item_id,
         )
 
         self._last_brightness = 50
@@ -56,15 +61,19 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
     @property
     def is_on(self):
         """Return the on/off state of the light."""
-        if self.coordinator.data[self._system_id]["access_points"][self._item_id]["accessPointSettings"]["lightingSettings"].get("intensity"):
+        if self.coordinator.data[self._system_id]["access_points"][self._item_id][
+            "accessPointSettings"
+        ]["lightingSettings"].get("intensity"):
             return True
         else:
             return False
-    
+
     @property
     def brightness(self):
         """Return the current brightness of the light."""
-        brightness = self.coordinator.data[self._system_id]["access_points"][self._item_id]["accessPointSettings"]["lightingSettings"].get("intensity")
+        brightness = self.coordinator.data[self._system_id]["access_points"][
+            self._item_id
+        ]["accessPointSettings"]["lightingSettings"].get("intensity")
 
         if brightness:
             if brightness > 0:
@@ -83,14 +92,14 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
     @property
     def device_info(self):
         """Define the device as a device tracker system."""
-        device_info =  {
+        device_info = {
             ATTR_IDENTIFIERS: {(DOMAIN, self._item_id)},
             ATTR_NAME: self._name,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
-            "via_device": (DOMAIN, self._system_id)
-        }    
-        
+            "via_device": (DOMAIN, self._system_id),
+        }
+
         return device_info
 
     async def async_turn_on(self, **kwargs):
@@ -110,4 +119,3 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
     async def async_turn_off(self, **kwargs):
         """Turn off the light."""
         await self.coordinator.api.set_brightness(self._item_id, 0)
-

@@ -3,26 +3,26 @@
 import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.helpers import entity_platform
 from homeassistant.const import ATTR_NAME
+from homeassistant.helpers import entity_platform
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from . import GoogleWiFiUpdater, GoogleWifiEntity
-
+from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN, 
-    COORDINATOR, 
-    DEFAULT_ICON,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
     ATTR_SW_VERSION,
+    COORDINATOR,
+    DEFAULT_ICON,
     DEV_MANUFACTURER,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 SERVICE_RESET = "reset"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the binary sensor platforms."""
@@ -52,7 +52,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
-    #register service for reset
+    # register service for reset
     platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
@@ -60,6 +60,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         {},
         "async_reset_device",
     )
+
 
 class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
     """Defines a Google WiFi sensor."""
@@ -71,7 +72,12 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
         state = False
 
         if self._item_id:
-            if self.coordinator.data[self._system_id]["access_points"][self._item_id]["status"] == "AP_ONLINE":
+            if (
+                self.coordinator.data[self._system_id]["access_points"][self._item_id][
+                    "status"
+                ]
+                == "AP_ONLINE"
+            ):
                 state = True
         else:
             if self.coordinator.data[self._system_id]["status"] == "WAN_ONLINE":
@@ -82,7 +88,7 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
     @property
     def device_info(self):
         """Define the device as an individual Google WiFi system."""
-        
+
         device_info = {
             ATTR_MANUFACTURER: DEV_MANUFACTURER,
             ATTR_NAME: self._name,
@@ -90,14 +96,22 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
 
         if self._item_id:
             device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._item_id)}
-            this_data = self.coordinator.data[self._system_id]["access_points"][self._item_id]
-            device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"]["hardwareType"]
-            device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"]["firmwareVersion"]
+            this_data = self.coordinator.data[self._system_id]["access_points"][
+                self._item_id
+            ]
+            device_info[ATTR_MANUFACTURER] = this_data["accessPointProperties"][
+                "hardwareType"
+            ]
+            device_info[ATTR_SW_VERSION] = this_data["accessPointProperties"][
+                "firmwareVersion"
+            ]
             device_info["via_device"] = (DOMAIN, self._system_id)
         else:
             device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
             device_info[ATTR_MODEL] = "Google Wifi"
-            device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id]["groupProperties"]["otherProperties"]["firmwareVersion"]
+            device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id][
+                "groupProperties"
+            ]["otherProperties"]["firmwareVersion"]
 
         return device_info
 
