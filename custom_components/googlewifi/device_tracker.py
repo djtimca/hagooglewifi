@@ -61,6 +61,9 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
             else:
                 self._attrs["connected_ap"] = "NA"
 
+            if self.coordinator.data[self._system_id]["devices"][self._item_id].get("ipAddresses"):
+                self._attrs["ip_address"] = self.coordinator.data[self._system_id]["devices"][self._item_id]["ipAddresses"][0]
+
             return True
         else:
             return False
@@ -82,4 +85,3 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
         }    
         
         return device_info
-        

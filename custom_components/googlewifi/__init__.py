@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity, UpdateFailed
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
 
@@ -119,19 +119,15 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
 
         try:
             system_data = await self.api.get_systems()
+            return system_data
         except GoogleWifiException as error:
-            _LOGGER.info(f"Google Connection Error. Creating new session.")
             session = aiohttp_client.async_create_clientsession(self.hass)
             self.api = GoogleWifi(refresh_token=self.refresh_token, session=session)
-            raise PlatformNotReady from error
+            raise UpdateFailed(f"Error updating from GoogleWifi: {error}") from error
         except ConnectionError as error:
-            _LOGGER.info(f"Google Wifi API: {error}")
-            raise PlatformNotReady from error
+            raise PlatformNotReady(f"Error connecting to GoogleWifi: {error}") from error
         except ValueError as error:
-            _LOGGER.info(f"Google Wifi API: {error}")
-            raise ConfigEntryNotReady from error
-
-        return system_data
+            raise ConfigEntryNotReady(f"Invalid data from GoogleWifi: {error}") from error
 
 class GoogleWifiEntity(CoordinatorEntity):
     """Defines the base Google WiFi entity."""
