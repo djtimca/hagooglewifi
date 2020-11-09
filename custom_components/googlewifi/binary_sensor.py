@@ -37,9 +37,18 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entities.append(entity)
 
         for ap_id, access_point in system["access_points"].items():
+            ap_name = "Google Access Point"
+
+            if access_point["accessPointSettings"].get("accessPointOtherSettings"):
+                if access_point["accessPointSettings"]["accessPointOtherSettings"].get("apName"):
+                    ap_name = access_point["accessPointSettings"]["accessPointOtherSettings"]["apName"]
+                
+                if access_point["accessPointSettings"]["accessPointOtherSettings"].get("roomData"):
+                    ap_name = f"{access_point['accessPointSettings']['accessPointOtherSettings']['roomData']['name']} Access Point"
+
             entity = GoogleWifiBinarySensor(
                 coordinator=coordinator,
-                name=f"{access_point['accessPointSettings']['accessPointOtherSettings']['roomData']['name']} Access Point",
+                name=ap_name,
                 icon=DEFAULT_ICON,
                 system_id=system_id,
                 item_id=ap_id,

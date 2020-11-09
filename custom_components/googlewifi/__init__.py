@@ -55,6 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         name="GoogleWifi",
         polling_interval=polling_interval,
         refresh_token=conf[REFRESH_TOKEN],
+        entry=entry,
     )
 
     await coordinator.async_refresh()
@@ -102,10 +103,12 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         name: str,
         polling_interval: int,
         refresh_token: str,
+        entry: ConfigEntry,
     ):
         """Initialize the global Google Wifi data updater."""
         self.api = api
         self.refresh_token = refresh_token
+        self.entry = entry
 
         super().__init__(
             hass=hass,
