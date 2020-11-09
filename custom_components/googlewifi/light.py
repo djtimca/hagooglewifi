@@ -10,7 +10,6 @@ from homeassistant.const import ATTR_NAME
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,

@@ -10,7 +10,6 @@ from homeassistant.util.dt import as_local, parse_datetime
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,

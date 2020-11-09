@@ -92,6 +92,10 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
                 self._is_connected = False
         except TypeError:
             pass
+        except KeyError:
+            self.hass.async_create_task(
+                self.hass.config_entries.async_reload(self.coordinator.entry.entry_id)
+            )
 
         return self._is_connected
 
