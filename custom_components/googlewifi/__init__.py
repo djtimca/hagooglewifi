@@ -6,16 +6,24 @@ from datetime import timedelta
 import voluptuous as vol
 from googlewifi import GoogleWifi, GoogleWifiException
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
+from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
     UpdateFailed,
 )
 
-from .const import COORDINATOR, DOMAIN, GOOGLEWIFI_API, POLLING_INTERVAL, REFRESH_TOKEN
+from .const import (
+    COORDINATOR, 
+    DOMAIN, 
+    GOOGLEWIFI_API, 
+    POLLING_INTERVAL, 
+    REFRESH_TOKEN,
+    ADD_DISABLED,
+)
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 _LOGGER = logging.getLogger(__name__)
@@ -32,7 +40,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Google WiFi component from a config entry."""
-    polling_interval = POLLING_INTERVAL
+    polling_interval = entry.options.get(CONF_SCAN_INTERVAL, POLLING_INTERVAL)
 
     conf = entry.data
 
@@ -56,6 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         polling_interval=polling_interval,
         refresh_token=conf[REFRESH_TOKEN],
         entry=entry,
+        add_disabled=conf.get(ADD_DISABLED, True),
     )
 
     await coordinator.async_refresh()
@@ -104,11 +113,13 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         polling_interval: int,
         refresh_token: str,
         entry: ConfigEntry,
+        add_disabled: bool,
     ):
         """Initialize the global Google Wifi data updater."""
         self.api = api
         self.refresh_token = refresh_token
         self.entry = entry
+        self.add_disabled = add_disabled
 
         super().__init__(
             hass=hass,
@@ -176,3 +187,17 @@ class GoogleWifiEntity(CoordinatorEntity):
     def device_state_attributes(self):
         """Return the attributes."""
         return self._attrs
+
+    @property
+    def entity_registry_enabled_default(self):
+        """Return option setting to enable or disable by default."""
+        return self.coordinator.add_disabled
+
+    async def async_added_to_hass(self):
+        """When entity is added to HASS."""
+        self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
+
+    @callback
+    def _update_callback(self):
+        """Handle device update."""
+        self.async_write_ha_state()
