@@ -10,7 +10,6 @@ from homeassistant.const import ATTR_NAME
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
-    DOMAIN,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
@@ -33,11 +32,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
             ap_name = "Google Access Point"
 
             if access_point["accessPointSettings"].get("accessPointOtherSettings"):
-                if access_point["accessPointSettings"]["accessPointOtherSettings"].get("apName"):
-                    ap_name = access_point["accessPointSettings"]["accessPointOtherSettings"]["apName"]
-                
-                if access_point["accessPointSettings"]["accessPointOtherSettings"].get("roomData"):
-                    if access_point['accessPointSettings']['accessPointOtherSettings']['roomData'].get('name'):
+                if access_point["accessPointSettings"]["accessPointOtherSettings"].get(
+                    "apName"
+                ):
+                    ap_name = access_point["accessPointSettings"][
+                        "accessPointOtherSettings"
+                    ]["apName"]
+
+                if access_point["accessPointSettings"]["accessPointOtherSettings"].get(
+                    "roomData"
+                ):
+                    if access_point["accessPointSettings"]["accessPointOtherSettings"][
+                        "roomData"
+                    ].get("name"):
                         ap_name = f"{access_point['accessPointSettings']['accessPointOtherSettings']['roomData']['name']} Access Point"
 
             entity = GoogleWifiLight(
