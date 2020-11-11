@@ -4,11 +4,13 @@ import logging
 import voluptuous as vol
 from googlewifi import GoogleWifi
 from homeassistant import config_entries
+from homeassistant.const import CONF_SCAN_INTERVAL
+from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client, config_entry_flow
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import callback
 
-from .const import DOMAIN, REFRESH_TOKEN, ADD_DISABLED, POLLING_INTERVAL
+from .const import ADD_DISABLED, DOMAIN, POLLING_INTERVAL, REFRESH_TOKEN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,7 +85,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 {
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
-                        default=self.config_entry.options.get(CONF_SCAN_INTERVAL, POLLING_INTERVAL),
+                        default=self.config_entry.options.get(
+                            CONF_SCAN_INTERVAL, POLLING_INTERVAL
+                        ),
                     ): vol.All(
                         vol.Coerce(int),
                         vol.Range(min=3),

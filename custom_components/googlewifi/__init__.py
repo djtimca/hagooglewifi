@@ -6,6 +6,7 @@ from datetime import timedelta
 import voluptuous as vol
 from googlewifi import GoogleWifi, GoogleWifiException
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
@@ -17,12 +18,12 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import (
-    COORDINATOR, 
-    DOMAIN, 
-    GOOGLEWIFI_API, 
-    POLLING_INTERVAL, 
-    REFRESH_TOKEN,
     ADD_DISABLED,
+    COORDINATOR,
+    DOMAIN,
+    GOOGLEWIFI_API,
+    POLLING_INTERVAL,
+    REFRESH_TOKEN,
 )
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
