@@ -7,8 +7,6 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client, config_entry_flow
-from homeassistant.const import CONF_SCAN_INTERVAL
-from homeassistant.core import callback
 
 from .const import ADD_DISABLED, DOMAIN, POLLING_INTERVAL, REFRESH_TOKEN
 
@@ -65,6 +63,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
+
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow changes."""
