@@ -46,6 +46,18 @@ Note: Only one device can be prioritized at a time. If you set a second prioriti
 
 The light platform allows you to turn on and off and set the brightness of the lights on each of your Google Wifi hubs. (Just for fun).
 
+#### Sensor:
+
+The sensor platform adds upload and download speed monitoring to your Google Wifi system. Automatic speed testing can be enabled and disabled from the integration options (default on), as can the interval for the tests (default 24 hours).
+
+##### Service: googlewifi.speed_test
+
+|Parameter|Description|Example|
+|-|-|-|
+|entity_id|The entity_id of the google system.|binary_sensor.google_wifi
+
+Note: You must select the main wifi system. Individual devices can not be tested.
+
 ### Install through HACS:
 
 Add a custom repository in HACS pointed to https://github.com/djtimca/hagooglewifi
