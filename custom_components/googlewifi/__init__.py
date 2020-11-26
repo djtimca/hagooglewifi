@@ -150,6 +150,7 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
             if time.time() > (
                 self._last_speedtest * 60 * 60 * self.speedtest_interval
             ) and self.auto_speedtest == True and self.hass.state == CoreState.running:
+                self._last_speedtest = time.time()
                 for system_id, system in system_data.items():
                     speedtest_result = await self.api.run_speed_test(system_id=system_id)
                     system_data[system_id]["speedtest"] = speedtest_result
