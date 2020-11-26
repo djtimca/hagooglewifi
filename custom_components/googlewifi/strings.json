@@ -24,7 +24,10 @@
           "data": {
             "refresh_token": "Enter the refresh token obtained from https://www.angelod.com/onhubauthtool",
             "add_disabled": "Add all entities as enabled?",
-            "scan_interval": "Polling Interval (seconds)"
+            "scan_interval": "Polling Interval (seconds)",
+            "auto_speedtest": "Run speed test automatically?",
+            "speedtest_interval": "Speed test interval (hours).",
+            "speed_units": "Unit of measurement for internet speed."
           }
         }
       }

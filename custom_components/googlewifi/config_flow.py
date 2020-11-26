@@ -4,11 +4,27 @@ import logging
 import voluptuous as vol
 from googlewifi import GoogleWifi
 from homeassistant import config_entries
-from homeassistant.const import CONF_SCAN_INTERVAL
+from homeassistant.const import (
+    CONF_SCAN_INTERVAL,
+    DATA_RATE_BYTES_PER_SECOND,
+    DATA_RATE_KILOBYTES_PER_SECOND,
+    DATA_RATE_MEGABYTES_PER_SECOND,
+    DATA_RATE_GIGABYTES_PER_SECOND,
+)
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client, config_entry_flow
 
-from .const import ADD_DISABLED, DOMAIN, POLLING_INTERVAL, REFRESH_TOKEN
+from .const import (
+    ADD_DISABLED, 
+    DOMAIN, 
+    POLLING_INTERVAL, 
+    REFRESH_TOKEN,
+    CONF_SPEEDTEST,
+    CONF_SPEEDTEST_INTERVAL,
+    DEFAULT_SPEEDTEST,
+    DEFAULT_SPEEDTEST_INTERVAL,
+    CONF_SPEED_UNITS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,6 +106,31 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ): vol.All(
                         vol.Coerce(int),
                         vol.Range(min=3),
+                    ),
+                    vol.Optional(
+                        CONF_SPEEDTEST,
+                        default=self.config_entry.options.get(
+                            CONF_SPEEDTEST, DEFAULT_SPEEDTEST
+                        ),
+                    ):bool,
+                    vol.Optional(
+                        CONF_SPEEDTEST_INTERVAL,
+                        default=self.config_entry.options.get(
+                            CONF_SPEEDTEST_INTERVAL, DEFAULT_SPEEDTEST_INTERVAL
+                        ),
+                    ): vol.Coerce(int),
+                    vol.Optional(
+                        CONF_SPEED_UNITS,
+                        default=self.config_entry.options.get(
+                            CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+                        ),
+                    ): vol.In(
+                        {
+                            DATA_RATE_BYTES_PER_SECOND:"B/s",
+                            DATA_RATE_KILOBYTES_PER_SECOND:"kB/s",
+                            DATA_RATE_MEGABYTES_PER_SECOND:"MB/s",
+                            DATA_RATE_GIGABYTES_PER_SECOND:"GB/s",
+                        }
                     ),
                 }
             ),

@@ -2,12 +2,13 @@
 import asyncio
 import logging
 from datetime import timedelta
+import time
 
 import voluptuous as vol
 from googlewifi import GoogleWifi, GoogleWifiException
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback, CoreState
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.update_coordinator import (
@@ -23,12 +24,16 @@ from .const import (
     GOOGLEWIFI_API,
     POLLING_INTERVAL,
     REFRESH_TOKEN,
+    CONF_SPEEDTEST,
+    CONF_SPEEDTEST_INTERVAL,
+    DEFAULT_SPEEDTEST,
+    DEFAULT_SPEEDTEST_INTERVAL,
 )
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["binary_sensor", "device_tracker", "switch", "light"]
+PLATFORMS = ["binary_sensor", "device_tracker", "switch", "light", "sensor"]
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
@@ -43,6 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     polling_interval = entry.options.get(CONF_SCAN_INTERVAL, POLLING_INTERVAL)
 
     conf = entry.data
+    conf_options = entry.options
 
     session = aiohttp_client.async_get_clientsession(hass)
 
@@ -65,6 +71,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         refresh_token=conf[REFRESH_TOKEN],
         entry=entry,
         add_disabled=conf.get(ADD_DISABLED, True),
+        auto_speedtest=conf_options.get(CONF_SPEEDTEST,DEFAULT_SPEEDTEST),
+        speedtest_interval=conf_options.get(CONF_SPEEDTEST_INTERVAL,DEFAULT_SPEEDTEST_INTERVAL),
     )
 
     await coordinator.async_refresh()
@@ -114,12 +122,17 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         refresh_token: str,
         entry: ConfigEntry,
         add_disabled: bool,
+        auto_speedtest: str,
+        speedtest_interval: str,
     ):
         """Initialize the global Google Wifi data updater."""
         self.api = api
         self.refresh_token = refresh_token
         self.entry = entry
         self.add_disabled = add_disabled
+        self._last_speedtest = 0
+        self.auto_speedtest = auto_speedtest
+        self.speedtest_interval = speedtest_interval
 
         super().__init__(
             hass=hass,
@@ -133,6 +146,14 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
 
         try:
             system_data = await self.api.get_systems()
+
+            if time.time() > (
+                self._last_speedtest * 60 * 60 * self.speedtest_interval
+            ) and self.auto_speedtest == True and self.hass.state == CoreState.running:
+                for system_id, system in system_data.items():
+                    speedtest_result = await self.api.run_speed_test(system_id=system_id)
+                    system_data[system_id]["speedtest"] = speedtest_result
+            
             return system_data
         except GoogleWifiException as error:
             session = aiohttp_client.async_create_clientsession(self.hass)

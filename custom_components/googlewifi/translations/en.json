@@ -1,29 +1,35 @@
 {
+    "title": "Google WiFi Integration",
     "config": {
-        "error": {
-            "cannot_connect": "Failed to connect",
-            "invalid_auth": "Invalid refresh token.",
-            "unknown": "Unexpected error"
-        },
-        "step": {
-            "user": {
-                "data": {
-                    "refresh_token": "Enter the refresh token obtained from https://www.angelod.com/onhubauthtool",
-                    "add_disabled": "Add all entities as enabled?"
-                }
-            }
+      "step": {
+        "user": {
+          "data": {
+            "refresh_token": "Enter the refresh token obtained from https://www.angelod.com/onhubauthtool",
+            "add_disabled": "Add all entities as enabled?"
+          }
         }
+      },
+      "error": {
+        "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+        "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+        "unknown": "[%key:common::config_flow::error::unknown%]"
+      },
+      "abort": {
+        "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
+      }
     },
     "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "refresh_token": "Enter the refresh token obtained from https://www.angelod.com/onhubauthtool",
-                    "add_disabled": "Add all entities as enabled?",
-                    "scan_interval": "Polling Interval (seconds)"
-                }
-            }
+      "step": {
+        "init": {
+          "data": {
+            "refresh_token": "Enter the refresh token obtained from https://www.angelod.com/onhubauthtool",
+            "add_disabled": "Add all entities as enabled?",
+            "scan_interval": "Polling Interval (seconds)",
+            "auto_speedtest": "Run speed test automatically?",
+            "speedtest_interval": "Speed test interval (hours).",
+            "speed_units": "Unit of measurement for internet speed."
+          }
         }
-    },
-    "title": "Google WiFi Integration"
-}
+      }
+    }
+  }

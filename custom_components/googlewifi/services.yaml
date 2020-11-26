@@ -21,3 +21,10 @@ prioritize_reset:
     entity_id:
       description: A switch entity ID from the Google Wifi System you want to clear.
       example: switch.iPhone
+
+speed_test:
+  description: Run a WLAN speed test on the Google Wifi system.
+  fields:
+    entity_id:
+      description: The entity id of the main Google Wifi System you want to test.
+      example: binary_sensor.this_system
