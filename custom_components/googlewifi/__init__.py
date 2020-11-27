@@ -133,6 +133,7 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         self._last_speedtest = 0
         self.auto_speedtest = auto_speedtest
         self.speedtest_interval = speedtest_interval
+        self._force_speed_update=None
 
         super().__init__(
             hass=hass,
@@ -141,20 +142,38 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
             update_interval=timedelta(seconds=polling_interval),
         )
 
+    async def force_speed_test(self, system_id):
+        """Set the flag to force a speed test."""
+        self._force_speed_update = system_id
+        return True
+
     async def _async_update_data(self):
         """Fetch data from Google Wifi API."""
 
         try:
             system_data = await self.api.get_systems()
-
+            
+            connected_count = 0
+            for system_id, system in system_data.items():
+                for device_id, device in system["devices"].items():
+                    if device.get("connected"):
+                        connected_count += 1
+            
+            system_data[system_id]["connected_devices"] = connected_count
+            
             if time.time() > (
                 self._last_speedtest * 60 * 60 * self.speedtest_interval
             ) and self.auto_speedtest == True and self.hass.state == CoreState.running:
-                self._last_speedtest = time.time()
                 for system_id, system in system_data.items():
                     speedtest_result = await self.api.run_speed_test(system_id=system_id)
                     system_data[system_id]["speedtest"] = speedtest_result
-            
+                
+                self._last_speedtest = time.time()
+            elif self._force_speed_update:
+                speedtest_result = await self.api.run_speed_test(system_id=system_id)
+                system_data[system_id]["speedtest"] = speedtest_result
+                self._force_speed_update = None
+
             return system_data
         except GoogleWifiException as error:
             session = aiohttp_client.async_create_clientsession(self.hass)

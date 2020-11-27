@@ -55,6 +55,15 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
         entities.append(entity)
 
+        entity = GoogleWifiConnectedDevices(
+            coordinator=coordinator,
+            name=f"Google Wifi System {system_id} Connected Devices",
+            icon="mdi:devices",
+            system_id=system_id,
+            item_id=None,
+        )
+        entities.append(entity)
+
     async_add_entities(entities)
 
     # register service for reset
@@ -114,14 +123,43 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
         return self._unit_of_measurement
 
     @property
-    def device_state_attributes(self):
-        """Return the state attributes for this sensor."""
-        if self.coordinator.data[self._system_id].get("speedtest"):
-            self.attrs["last_updated"] = as_local(parse_datetime(self.coordinator.data[self._system_id]["speedtest"]["timestamp"]))
-        else:
-            self.attrs["last_updated"] = "Never"
+    def device_info(self):
+        """Define the device as an individual Google WiFi system."""
 
-        return self.attrs
+        try:
+            device_info = {
+                ATTR_MANUFACTURER: DEV_MANUFACTURER,
+                ATTR_NAME: self._name,
+            }
+
+            device_info[ATTR_IDENTIFIERS] = {(DOMAIN, self._system_id)}
+            device_info[ATTR_MODEL] = "Google Wifi"
+            device_info[ATTR_SW_VERSION] = self.coordinator.data[self._system_id][
+                "groupProperties"
+            ]["otherProperties"]["firmwareVersion"]
+
+            self._device_info = device_info
+        except TypeError:
+            pass
+
+        return self._device_info
+
+    async def async_speed_test(self, **kwargs):
+        """Run a speed test."""
+        await self.coordinator.force_speed_test(system_id=self._system_id)
+
+class GoogleWifiConnectedDevices(GoogleWifiEntity):
+    """Define a connected devices count sensor for Google Wifi."""
+
+    @property
+    def unique_id(self):
+        """Return the unique id for this sensor."""
+        return f"{self._system_id}_device_count"
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement for this sensor."""
+        return "Devices"
 
     @property
     def device_info(self):
@@ -145,18 +183,7 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
 
         return self._device_info
 
-    async def async_speed_test(self):
-        """Run a speed test."""
-
-        if self._item_id:
-            raise HomeAssistantError("Speed Tests can only be run on the main Google Wifi system.")
-
-        else:
-            speed_test = await self.coordinator.api.run_speed_test(self._system_id)
-
-            if speed_test:
-                self.coordinator.data[self._system_id]["speedtest"] = speed_test
-                self.async_schedule_update_ha_state()
-
-            else:
-                raise ConnectionError("Failed to run the speed test.")
+    @property
+    def state(self):
+        """Return the current count of connected devices."""
+        return self.coordinator.data[self._system_id]["connected_devices"]

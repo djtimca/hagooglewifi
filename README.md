@@ -54,7 +54,7 @@ The sensor platform adds upload and download speed monitoring to your Google Wif
 
 |Parameter|Description|Example|
 |-|-|-|
-|entity_id|The entity_id of the google system.|binary_sensor.google_wifi
+|entity_id|A speed sensor entity_id of the google system.|sensor.google_wifi_system_upload_speed
 
 Note: You must select the main wifi system. Individual devices can not be tested.
 
