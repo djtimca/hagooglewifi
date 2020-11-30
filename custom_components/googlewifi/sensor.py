@@ -60,7 +60,25 @@ async def async_setup_entry(hass, entry, async_add_entities):
             name=f"Google Wifi System {system_id} Connected Devices",
             icon="mdi:devices",
             system_id=system_id,
-            item_id=None,
+            count_type="main",
+        )
+        entities.append(entity)
+
+        entity = GoogleWifiConnectedDevices(
+            coordinator=coordinator,
+            name=f"Google Wifi System {system_id} Guest Devices",
+            icon="mdi:devices",
+            system_id=system_id,
+            count_type="guest",
+        )
+        entities.append(entity)
+
+        entity = GoogleWifiConnectedDevices(
+            coordinator=coordinator,
+            name=f"Google Wifi System {system_id} Total Devices",
+            icon="mdi:devices",
+            system_id=system_id,
+            count_type="total",
         )
         entities.append(entity)
 
@@ -151,10 +169,23 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
 class GoogleWifiConnectedDevices(GoogleWifiEntity):
     """Define a connected devices count sensor for Google Wifi."""
 
+    def __init__(self, coordinator, name, icon, system_id, count_type):
+        """Initialize the count sensor."""
+
+        super().__init__(
+            coordinator=coordinator,
+            name=name,
+            icon=icon,
+            system_id=system_id,
+            item_id=None,
+        )
+
+        self._count_type = count_type
+
     @property
     def unique_id(self):
         """Return the unique id for this sensor."""
-        return f"{self._system_id}_device_count"
+        return f"{self._system_id}_device_count_{self._count_type}"
 
     @property
     def unit_of_measurement(self):
@@ -186,4 +217,11 @@ class GoogleWifiConnectedDevices(GoogleWifiEntity):
     @property
     def state(self):
         """Return the current count of connected devices."""
-        return self.coordinator.data[self._system_id]["connected_devices"]
+        if self._count_type == "main":
+            state = self.coordinator.data[self._system_id]["connected_devices"]
+        elif self._count_type == "guest":
+            state = self.coordinator.data[self._system_id]["guest_devices"]
+        elif self._count_type == "total":
+            state = self.coordinator.data[self._system_id]["total_devices"]
+
+        return state

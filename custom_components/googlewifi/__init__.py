@@ -153,13 +153,24 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         try:
             system_data = await self.api.get_systems()
             
-            connected_count = 0
             for system_id, system in system_data.items():
+                connected_count = 0
+                guest_connected_count = 0
+                main_network = system["groupSettings"]["lanSettings"].get("dhcpPoolBegin"," " * 10)
+                main_network = ".".join(main_network.split(".",3)[:3])
+
                 for device_id, device in system["devices"].items():
-                    if device.get("connected"):
+                    device_network = device.get("ipAddress"," " * 10)
+                    device_network = ".".join(device_network.split(".",3)[:3])
+
+                    if device.get("connected") and main_network==device_network:
                         connected_count += 1
+                    elif device.get("connected") and device.get("unfilteredFriendlyType") != "Nest Wifi point":
+                        guest_connected_count += 1
             
             system_data[system_id]["connected_devices"] = connected_count
+            system_data[system_id]["guest_devices"] = guest_connected_count
+            system_data[system_id]["total_devices"] = connected_count + guest_connected_count
             
             if time.time() > (
                 self._last_speedtest * 60 * 60 * self.speedtest_interval
