@@ -3,8 +3,9 @@
     "config": {
       "step": {
         "user": {
+          "description": "Please get a refresh token from https://www.angelod.com/onhubauthtool to configure the integration.",
           "data": {
-            "refresh_token": "Enter the refresh token obtained from https://www.angelod.com/onhubauthtool",
+            "refresh_token": "Refresh Token",
             "add_disabled": "Add all entities as enabled?"
           }
         }
