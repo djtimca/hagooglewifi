@@ -1,14 +1,14 @@
 """The Google Wifi Integration for Home Assistant."""
 import asyncio
 import logging
-from datetime import timedelta
 import time
+from datetime import timedelta
 
 import voluptuous as vol
 from googlewifi import GoogleWifi, GoogleWifiException
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
-from homeassistant.core import HomeAssistant, callback, CoreState
+from homeassistant.core import CoreState, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.update_coordinator import (
@@ -19,15 +19,15 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import (
     ADD_DISABLED,
+    CONF_SPEEDTEST,
+    CONF_SPEEDTEST_INTERVAL,
     COORDINATOR,
+    DEFAULT_SPEEDTEST,
+    DEFAULT_SPEEDTEST_INTERVAL,
     DOMAIN,
     GOOGLEWIFI_API,
     POLLING_INTERVAL,
     REFRESH_TOKEN,
-    CONF_SPEEDTEST,
-    CONF_SPEEDTEST_INTERVAL,
-    DEFAULT_SPEEDTEST,
-    DEFAULT_SPEEDTEST_INTERVAL,
 )
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
@@ -71,8 +71,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         refresh_token=conf[REFRESH_TOKEN],
         entry=entry,
         add_disabled=conf.get(ADD_DISABLED, True),
-        auto_speedtest=conf_options.get(CONF_SPEEDTEST,DEFAULT_SPEEDTEST),
-        speedtest_interval=conf_options.get(CONF_SPEEDTEST_INTERVAL,DEFAULT_SPEEDTEST_INTERVAL),
+        auto_speedtest=conf_options.get(CONF_SPEEDTEST, DEFAULT_SPEEDTEST),
+        speedtest_interval=conf_options.get(
+            CONF_SPEEDTEST_INTERVAL, DEFAULT_SPEEDTEST_INTERVAL
+        ),
     )
 
     await coordinator.async_refresh()
@@ -133,7 +135,7 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         self._last_speedtest = 0
         self.auto_speedtest = auto_speedtest
         self.speedtest_interval = speedtest_interval
-        self._force_speed_update=None
+        self._force_speed_update = None
 
         super().__init__(
             hass=hass,
@@ -152,22 +154,44 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
 
         try:
             system_data = await self.api.get_systems()
-            
-            connected_count = 0
+
             for system_id, system in system_data.items():
+                connected_count = 0
+                guest_connected_count = 0
+                main_network = system["groupSettings"]["lanSettings"].get(
+                    "dhcpPoolBegin", " " * 10
+                )
+                main_network = ".".join(main_network.split(".", 3)[:3])
+
                 for device_id, device in system["devices"].items():
-                    if device.get("connected"):
+                    device_network = device.get("ipAddress", " " * 10)
+                    device_network = ".".join(device_network.split(".", 3)[:3])
+
+                    if device.get("connected") and main_network == device_network:
                         connected_count += 1
-            
+                    elif (
+                        device.get("connected")
+                        and device.get("unfilteredFriendlyType") != "Nest Wifi point"
+                    ):
+                        guest_connected_count += 1
+
             system_data[system_id]["connected_devices"] = connected_count
-            
-            if time.time() > (
-                self._last_speedtest * 60 * 60 * self.speedtest_interval
-            ) and self.auto_speedtest == True and self.hass.state == CoreState.running:
+            system_data[system_id]["guest_devices"] = guest_connected_count
+            system_data[system_id]["total_devices"] = (
+                connected_count + guest_connected_count
+            )
+
+            if (
+                time.time() > (self._last_speedtest * 60 * 60 * self.speedtest_interval)
+                and self.auto_speedtest == True
+                and self.hass.state == CoreState.running
+            ):
                 for system_id, system in system_data.items():
-                    speedtest_result = await self.api.run_speed_test(system_id=system_id)
+                    speedtest_result = await self.api.run_speed_test(
+                        system_id=system_id
+                    )
                     system_data[system_id]["speedtest"] = speedtest_result
-                
+
                 self._last_speedtest = time.time()
             elif self._force_speed_update:
                 speedtest_result = await self.api.run_speed_test(system_id=system_id)
