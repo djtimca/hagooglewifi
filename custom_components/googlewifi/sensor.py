@@ -1,32 +1,32 @@
 """Definition and setup of the Google Wifi Speed Sensor for Home Assistant."""
 
-from homeassistant.util.dt import as_local, parse_datetime
 from homeassistant.const import (
-    ATTR_NAME, 
+    ATTR_NAME,
     DATA_RATE_BYTES_PER_SECOND,
+    DATA_RATE_GIGABYTES_PER_SECOND,
     DATA_RATE_KILOBYTES_PER_SECOND,
     DATA_RATE_MEGABYTES_PER_SECOND,
-    DATA_RATE_GIGABYTES_PER_SECOND,
 )
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.util.dt import as_local, parse_datetime
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
-
 from .const import (
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
     ATTR_SW_VERSION,
+    CONF_SPEED_UNITS,
     COORDINATOR,
     DEFAULT_ICON,
     DEV_MANUFACTURER,
     DOMAIN,
-    CONF_SPEED_UNITS,
 )
 
 SERVICE_SPEED_TEST = "speed_test"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the sensor platform for a Wifi system."""
@@ -41,7 +41,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
             icon=DEFAULT_ICON,
             system_id=system_id,
             speed_key="transmitWanSpeedBps",
-            unit_of_measure=entry.options.get(CONF_SPEED_UNITS,DATA_RATE_MEGABYTES_PER_SECOND),
+            unit_of_measure=entry.options.get(
+                CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+            ),
         )
         entities.append(entity)
 
@@ -51,7 +53,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
             icon=DEFAULT_ICON,
             system_id=system_id,
             speed_key="receiveWanSpeedBps",
-            unit_of_measure=entry.options.get(CONF_SPEED_UNITS,DATA_RATE_MEGABYTES_PER_SECOND),
+            unit_of_measure=entry.options.get(
+                CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+            ),
         )
         entities.append(entity)
 
@@ -122,17 +126,19 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
     def state(self):
         """Return the state of the sensor."""
         if self.coordinator.data[self._system_id].get("speedtest"):
-            self._state = float(self.coordinator.data[self._system_id]["speedtest"][self._speed_key])
+            self._state = float(
+                self.coordinator.data[self._system_id]["speedtest"][self._speed_key]
+            )
 
             if self._unit_of_measurement == DATA_RATE_KILOBYTES_PER_SECOND:
                 self._state *= 1000
             elif self._unit_of_measurement == DATA_RATE_MEGABYTES_PER_SECOND:
-                self._state *= 1E-6
+                self._state *= 1e-6
             elif self._unit_of_measurement == DATA_RATE_GIGABYTES_PER_SECOND:
-                self._state *= 1E-9
+                self._state *= 1e-9
 
-            self._state = round(self._state,2)
-        
+            self._state = round(self._state, 2)
+
         return self._state
 
     @property
@@ -165,6 +171,7 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
     async def async_speed_test(self, **kwargs):
         """Run a speed test."""
         await self.coordinator.force_speed_test(system_id=self._system_id)
+
 
 class GoogleWifiConnectedDevices(GoogleWifiEntity):
     """Define a connected devices count sensor for Google Wifi."""
