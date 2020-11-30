@@ -125,21 +125,22 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        if self.coordinator.data[self._system_id].get("speedtest"):
-            self._state = float(
-                self.coordinator.data[self._system_id]["speedtest"][self._speed_key]
-            )
+        if self.coordinator.data.get(self._system_id):
+            if self.coordinator.data[self._system_id].get("speedtest"):
+                self._state = float(
+                    self.coordinator.data[self._system_id]["speedtest"][self._speed_key]
+                )
 
-            if self._unit_of_measurement == DATA_RATE_KILOBYTES_PER_SECOND:
-                self._state *= 1000
-            elif self._unit_of_measurement == DATA_RATE_MEGABYTES_PER_SECOND:
-                self._state *= 1e-6
-            elif self._unit_of_measurement == DATA_RATE_GIGABYTES_PER_SECOND:
-                self._state *= 1e-9
+                if self._unit_of_measurement == DATA_RATE_KILOBYTES_PER_SECOND:
+                    self._state *= 1000
+                elif self._unit_of_measurement == DATA_RATE_MEGABYTES_PER_SECOND:
+                    self._state *= 1e-6
+                elif self._unit_of_measurement == DATA_RATE_GIGABYTES_PER_SECOND:
+                    self._state *= 1e-9
 
-            self._state = round(self._state, 2)
+                self._state = round(self._state, 2)
 
-        return self._state
+            return self._state
 
     @property
     def unit_of_measurement(self):
