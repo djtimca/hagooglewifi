@@ -188,6 +188,7 @@ class GoogleWifiConnectedDevices(GoogleWifiEntity):
         )
 
         self._count_type = count_type
+        self._state = None
 
     @property
     def unique_id(self):
@@ -224,11 +225,13 @@ class GoogleWifiConnectedDevices(GoogleWifiEntity):
     @property
     def state(self):
         """Return the current count of connected devices."""
-        if self._count_type == "main":
-            state = self.coordinator.data[self._system_id].get("connected_devices")
-        elif self._count_type == "guest":
-            state = self.coordinator.data[self._system_id].get("guest_devices")
-        elif self._count_type == "total":
-            state = self.coordinator.data[self._system_id].get("total_devices")
 
-        return state
+        if self.coordinator.data.get(self._system_id):
+            if self._count_type == "main":
+                self._state = self.coordinator.data[self._system_id]["connected_devices"]
+            elif self._count_type == "guest":
+                self._state = self.coordinator.data[self._system_id]["guest_devices"]
+            elif self._count_type == "total":
+                self._state = self.coordinator.data[self._system_id]["total_devices"]
+
+        return self._state
