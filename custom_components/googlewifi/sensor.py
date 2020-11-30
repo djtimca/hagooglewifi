@@ -125,7 +125,7 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        if self.coordinator.data.get(self._system_id):
+        if self.coordinator.data:
             if self.coordinator.data[self._system_id].get("speedtest"):
                 self._state = float(
                     self.coordinator.data[self._system_id]["speedtest"][self._speed_key]
@@ -227,7 +227,7 @@ class GoogleWifiConnectedDevices(GoogleWifiEntity):
     def state(self):
         """Return the current count of connected devices."""
 
-        if self.coordinator.data.get(self._system_id):
+        if self.coordinator.data:
             if self._count_type == "main":
                 self._state = self.coordinator.data[self._system_id]["connected_devices"]
             elif self._count_type == "guest":
