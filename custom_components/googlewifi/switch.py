@@ -3,24 +3,20 @@ import time
 
 import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import (
-    ATTR_NAME,
-    DATA_RATE_MEGABYTES_PER_SECOND,
-)
-
+from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABYTES_PER_SECOND
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
-from homeassistant.util.dt import as_local, parse_datetime
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.util.dt import as_local, parse_datetime
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
+    ATTR_CONNECTIONS,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
-    ATTR_CONNECTIONS,
-    COORDINATOR,
     CONF_SPEED_UNITS,
+    COORDINATOR,
     DEFAULT_ICON,
     DEV_CLIENT_MODEL,
     DOMAIN,
@@ -38,9 +34,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     entities = []
 
-    data_unit = entry.options.get(
-        CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
-    )
+    data_unit = entry.options.get(CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND)
 
     for system_id, system in coordinator.data.items():
         for dev_id, device in system["devices"].items():
@@ -141,27 +135,35 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
 
         self._mac = self.coordinator.data[self._system_id]["devices"][
             self._item_id
-        ].get("macAddress",None)
+        ].get("macAddress", None)
 
         self._attrs["mac"] = self._mac if self._mac else "NA"
         self._attrs["ip"] = self.coordinator.data[self._system_id]["devices"][
             self._item_id
-        ].get("ipAddress","NA")
+        ].get("ipAddress", "NA")
 
-        transmit_speed = float(self.coordinator.data[self._system_id][
-            "devices"
-        ][self._item_id].get("traffic",{}).get("transmitSpeedBps",0))
+        transmit_speed = float(
+            self.coordinator.data[self._system_id]["devices"][self._item_id]
+            .get("traffic", {})
+            .get("transmitSpeedBps", 0)
+        )
 
-        receive_speed = float(self.coordinator.data[self._system_id][
-            "devices"
-        ][self._item_id].get("traffic",{}).get("receiveSpeedBps",0))
+        receive_speed = float(
+            self.coordinator.data[self._system_id]["devices"][self._item_id]
+            .get("traffic", {})
+            .get("receiveSpeedBps", 0)
+        )
 
-        self._attrs["transmit_speed"] = f"{unit_convert(transmit_speed, self._unit_of_measurement)} {self._unit_of_measurement}"
-        self._attrs["receive_speed"] = f"{unit_convert(receive_speed, self._unit_of_measurement)} {self._unit_of_measurement}"
+        self._attrs[
+            "transmit_speed"
+        ] = f"{unit_convert(transmit_speed, self._unit_of_measurement)} {self._unit_of_measurement}"
+        self._attrs[
+            "receive_speed"
+        ] = f"{unit_convert(receive_speed, self._unit_of_measurement)} {self._unit_of_measurement}"
 
-        self._attrs["network"] = self.coordinator.data[self._system_id][
-            "devices"
-        ][self._item_id]["network"]
+        self._attrs["network"] = self.coordinator.data[self._system_id]["devices"][
+            self._item_id
+        ]["network"]
 
         return self._state
 

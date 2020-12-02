@@ -8,10 +8,10 @@ from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
+    ATTR_CONNECTIONS,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
-    ATTR_CONNECTIONS,
     COORDINATOR,
     DEFAULT_ICON,
     DEV_CLIENT_MODEL,
@@ -85,11 +85,11 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
 
                 self._attrs["ip_address"] = self.coordinator.data[self._system_id][
                     "devices"
-                ][self._item_id].get("ipAddress","NA")
+                ][self._item_id].get("ipAddress", "NA")
 
-                self._mac = self.coordinator.data[self._system_id][
-                    "devices"
-                ][self._item_id].get("macAddress")
+                self._mac = self.coordinator.data[self._system_id]["devices"][
+                    self._item_id
+                ].get("macAddress")
 
                 self._attrs["mac"] = self._mac if self._mac else "NA"
 
