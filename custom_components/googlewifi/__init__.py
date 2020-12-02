@@ -187,7 +187,8 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
             )
 
             if (
-                time.time() > (self._last_speedtest + (60 * 60 * self.speedtest_interval))
+                time.time()
+                > (self._last_speedtest + (60 * 60 * self.speedtest_interval))
                 and self.auto_speedtest == True
                 and self.hass.state == CoreState.running
             ):

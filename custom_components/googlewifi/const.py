@@ -29,7 +29,8 @@ CONF_SPEEDTEST_INTERVAL = "speedtest_interval"
 DEFAULT_SPEEDTEST_INTERVAL = 24
 CONF_SPEED_UNITS = "speed_units"
 
-def unit_convert(data_rate:float, unit_of_measurement:str):
+
+def unit_convert(data_rate: float, unit_of_measurement: str):
     """Convert the speed based on unit of measure."""
 
     if unit_of_measurement == DATA_RATE_KILOBYTES_PER_SECOND:
@@ -40,4 +41,3 @@ def unit_convert(data_rate:float, unit_of_measurement:str):
         data_rate *= 1e-9
 
     return round(data_rate, 2)
-

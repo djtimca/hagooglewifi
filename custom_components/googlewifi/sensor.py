@@ -1,9 +1,6 @@
 """Definition and setup of the Google Wifi Speed Sensor for Home Assistant."""
 
-from homeassistant.const import (
-    ATTR_NAME,
-    DATA_RATE_MEGABYTES_PER_SECOND,
-)
+from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABYTES_PER_SECOND
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -128,14 +125,7 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
     """Defines a Google WiFi Speed sensor."""
 
     def __init__(
-        self, 
-        coordinator, 
-        name, 
-        icon, 
-        system_id, 
-        speed_key, 
-        speed_type, 
-        unit_of_measure
+        self, coordinator, name, icon, system_id, speed_key, speed_type, unit_of_measure
     ):
         """Initialize the sensor."""
         super().__init__(
@@ -165,19 +155,23 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
             if self._speed_type == "speed_test":
                 if self.coordinator.data[self._system_id].get("speedtest"):
                     self._state = float(
-                        self.coordinator.data[self._system_id]["speedtest"][self._speed_key]
+                        self.coordinator.data[self._system_id]["speedtest"][
+                            self._speed_key
+                        ]
                     )
 
-                    self._state = unit_convert(self._state, self._unit_of_measurement)                    
+                    self._state = unit_convert(self._state, self._unit_of_measurement)
 
             elif self._speed_type == "realtime":
                 if self.coordinator.data[self._system_id].get("groupTraffic"):
                     self._state = float(
-                        self.coordinator.data[self._system_id]["groupTraffic"].get(self._speed_key,0)
+                        self.coordinator.data[self._system_id]["groupTraffic"].get(
+                            self._speed_key, 0
+                        )
                     )
 
                     self._state = unit_convert(self._state, self._unit_of_measurement)
-                
+
             return self._state
 
     @property
@@ -267,7 +261,9 @@ class GoogleWifiConnectedDevices(GoogleWifiEntity):
 
         if self.coordinator.data:
             if self._count_type == "main":
-                self._state = self.coordinator.data[self._system_id]["connected_devices"]
+                self._state = self.coordinator.data[self._system_id][
+                    "connected_devices"
+                ]
             elif self._count_type == "guest":
                 self._state = self.coordinator.data[self._system_id]["guest_devices"]
             elif self._count_type == "total":
