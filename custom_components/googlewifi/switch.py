@@ -158,10 +158,10 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
             )
 
             self._attrs[
-                f"transmit_speed_{self._unit_of_measurement}"
+                f"transmit_speed_{self._unit_of_measurement.replace('/', 'p').replace(' ', '_').lower()}"
             ] = unit_convert(transmit_speed, self._unit_of_measurement)
             self._attrs[
-                f"receive_speed_{self._unit_of_measurement}"
+                f"receive_speed_{self._unit_of_measurement.replace('/', 'p').replace(' ', '_').lower()}"
             ] = unit_convert(receive_speed, self._unit_of_measurement)
 
             self._attrs["network"] = self.coordinator.data[self._system_id]["devices"][
