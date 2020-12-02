@@ -135,37 +135,38 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
             except TypeError:
                 pass
 
-        self._mac = self.coordinator.data[self._system_id]["devices"][
-            self._item_id
-        ].get("macAddress", None)
+        if self.coordinator.data:
+            self._mac = self.coordinator.data[self._system_id]["devices"][
+                self._item_id
+            ].get("macAddress", None)
 
-        self._attrs["mac"] = self._mac if self._mac else "NA"
-        self._attrs["ip"] = self.coordinator.data[self._system_id]["devices"][
-            self._item_id
-        ].get("ipAddress", "NA")
+            self._attrs["mac"] = self._mac if self._mac else "NA"
+            self._attrs["ip"] = self.coordinator.data[self._system_id]["devices"][
+                self._item_id
+            ].get("ipAddress", "NA")
 
-        transmit_speed = float(
-            self.coordinator.data[self._system_id]["devices"][self._item_id]
-            .get("traffic", {})
-            .get("transmitSpeedBps", 0)
-        )
+            transmit_speed = float(
+                self.coordinator.data[self._system_id]["devices"][self._item_id]
+                .get("traffic", {})
+                .get("transmitSpeedBps", 0)
+            )
 
-        receive_speed = float(
-            self.coordinator.data[self._system_id]["devices"][self._item_id]
-            .get("traffic", {})
-            .get("receiveSpeedBps", 0)
-        )
+            receive_speed = float(
+                self.coordinator.data[self._system_id]["devices"][self._item_id]
+                .get("traffic", {})
+                .get("receiveSpeedBps", 0)
+            )
 
-        self._attrs[
-            "transmit_speed"
-        ] = f"{unit_convert(transmit_speed, self._unit_of_measurement)} {self._unit_of_measurement}"
-        self._attrs[
-            "receive_speed"
-        ] = f"{unit_convert(receive_speed, self._unit_of_measurement)} {self._unit_of_measurement}"
+            self._attrs[
+                f"transmit_speed_{self._unit_of_measurement}"
+            ] = unit_convert(transmit_speed, self._unit_of_measurement)
+            self._attrs[
+                f"receive_speed_{self._unit_of_measurement}"
+            ] = unit_convert(receive_speed, self._unit_of_measurement)
 
-        self._attrs["network"] = self.coordinator.data[self._system_id]["devices"][
-            self._item_id
-        ]["network"]
+            self._attrs["network"] = self.coordinator.data[self._system_id]["devices"][
+                self._item_id
+            ]["network"]
 
         return self._state
 
