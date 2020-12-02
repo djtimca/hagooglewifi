@@ -4,9 +4,11 @@ from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.components.device_tracker.const import DOMAIN as DEVICE_TRACKER
 from homeassistant.components.device_tracker.const import SOURCE_TYPE_ROUTER
 from homeassistant.const import ATTR_NAME
+from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
+    ATTR_CONNECTIONS,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
@@ -57,6 +59,7 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
         )
 
         self._is_connected = None
+        self._mac = None
 
     @property
     def is_connected(self):
@@ -80,12 +83,15 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
                 else:
                     self._attrs["connected_ap"] = "NA"
 
-                if self.coordinator.data[self._system_id]["devices"][self._item_id].get(
-                    "ipAddresses"
-                ):
-                    self._attrs["ip_address"] = self.coordinator.data[self._system_id][
-                        "devices"
-                    ][self._item_id]["ipAddresses"][0]
+                self._attrs["ip_address"] = self.coordinator.data[self._system_id][
+                    "devices"
+                ][self._item_id].get("ipAddress", "NA")
+
+                self._mac = self.coordinator.data[self._system_id]["devices"][
+                    self._item_id
+                ].get("macAddress")
+
+                self._attrs["mac"] = self._mac if self._mac else "NA"
 
                 self._is_connected = True
             else:
@@ -108,9 +114,15 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
     @property
     def device_info(self):
         """Define the device as a device tracker system."""
+        if self._mac:
+            mac = {(CONNECTION_NETWORK_MAC, self._mac)}
+        else:
+            mac = {}
+
         device_info = {
             ATTR_IDENTIFIERS: {(DOMAIN, self._item_id)},
             ATTR_NAME: self._name,
+            ATTR_CONNECTIONS: mac,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
             "via_device": (DOMAIN, self._system_id),

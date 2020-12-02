@@ -1,5 +1,13 @@
 """Constants for the Google WiFi integration."""
 
+from homeassistant.const import (
+    ATTR_NAME,
+    DATA_RATE_BYTES_PER_SECOND,
+    DATA_RATE_GIGABYTES_PER_SECOND,
+    DATA_RATE_KILOBYTES_PER_SECOND,
+    DATA_RATE_MEGABYTES_PER_SECOND,
+)
+
 DOMAIN = "googlewifi"
 COORDINATOR = "coordinator"
 GOOGLEWIFI_API = "googlewifi_api"
@@ -7,6 +15,7 @@ ATTR_IDENTIFIERS = "identifiers"
 ATTR_MANUFACTURER = "manufacturer"
 ATTR_MODEL = "model"
 ATTR_SW_VERSION = "sw_version"
+ATTR_CONNECTIONS = "connections"
 POLLING_INTERVAL = 3
 REFRESH_TOKEN = "refresh_token"
 DEV_MANUFACTURER = "Google"
@@ -19,3 +28,16 @@ DEFAULT_SPEEDTEST = True
 CONF_SPEEDTEST_INTERVAL = "speedtest_interval"
 DEFAULT_SPEEDTEST_INTERVAL = 24
 CONF_SPEED_UNITS = "speed_units"
+
+
+def unit_convert(data_rate: float, unit_of_measurement: str):
+    """Convert the speed based on unit of measure."""
+
+    if unit_of_measurement == DATA_RATE_KILOBYTES_PER_SECOND:
+        data_rate *= 1000
+    elif unit_of_measurement == DATA_RATE_MEGABYTES_PER_SECOND:
+        data_rate *= 1e-6
+    elif unit_of_measurement == DATA_RATE_GIGABYTES_PER_SECOND:
+        data_rate *= 1e-9
+
+    return round(data_rate, 2)

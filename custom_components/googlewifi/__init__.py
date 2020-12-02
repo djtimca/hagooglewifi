@@ -169,11 +169,16 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
 
                     if device.get("connected") and main_network == device_network:
                         connected_count += 1
+                        device["network"] = "main"
                     elif (
                         device.get("connected")
                         and device.get("unfilteredFriendlyType") != "Nest Wifi point"
                     ):
                         guest_connected_count += 1
+                        device["network"] = "guest"
+                    elif device.get("unfilteredFriendlyType") == "Nest Wifi point":
+                        connected_count += 1
+                        device["network"] = "main"
 
             system_data[system_id]["connected_devices"] = connected_count
             system_data[system_id]["guest_devices"] = guest_connected_count
@@ -182,7 +187,8 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
             )
 
             if (
-                time.time() > (self._last_speedtest + (60 * 60 * self.speedtest_interval))
+                time.time()
+                > (self._last_speedtest + (60 * 60 * self.speedtest_interval))
                 and self.auto_speedtest == True
                 and self.hass.state == CoreState.running
             ):
