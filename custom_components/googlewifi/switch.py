@@ -3,21 +3,29 @@ import time
 
 import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import ATTR_NAME
+from homeassistant.const import (
+    ATTR_NAME,
+    DATA_RATE_MEGABYTES_PER_SECOND,
+)
+
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.util.dt import as_local, parse_datetime
+from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
     ATTR_MODEL,
+    ATTR_CONNECTIONS,
     COORDINATOR,
+    CONF_SPEED_UNITS,
     DEFAULT_ICON,
     DEV_CLIENT_MODEL,
     DOMAIN,
     PAUSE_UPDATE,
+    unit_convert,
 )
 
 SERVICE_PRIORITIZE = "prioritize"
@@ -29,6 +37,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     entities = []
+
+    data_unit = entry.options.get(
+        CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+    )
 
     for system_id, system in coordinator.data.items():
         for dev_id, device in system["devices"].items():
@@ -43,6 +55,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 icon=DEFAULT_ICON,
                 system_id=system_id,
                 item_id=dev_id,
+                data_unit=data_unit,
             )
             entities.append(entity)
 
@@ -67,7 +80,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
     """Defines a Google WiFi switch."""
 
-    def __init__(self, coordinator, name, icon, system_id, item_id):
+    def __init__(self, coordinator, name, icon, system_id, item_id, data_unit):
         """Initialize the switch."""
         super().__init__(
             coordinator=coordinator,
@@ -80,6 +93,8 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
         self._state = None
         self._available = None
         self._last_change = 0
+        self._mac = None
+        self._unit_of_measurement = data_unit
 
     @property
     def is_on(self):
@@ -124,6 +139,30 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
             except TypeError:
                 pass
 
+        self._mac = self.coordinator.data[self._system_id]["devices"][
+            self._item_id
+        ].get("macAddress",None)
+
+        self._attrs["mac"] = self._mac if self._mac else "NA"
+        self._attrs["ip"] = self.coordinator.data[self._system_id]["devices"][
+            self._item_id
+        ].get("ipAddress","NA")
+
+        transmit_speed = float(self.coordinator.data[self._system_id][
+            "devices"
+        ][self._item_id].get("traffic",{}).get("transmitSpeedBps",0))
+
+        receive_speed = float(self.coordinator.data[self._system_id][
+            "devices"
+        ][self._item_id].get("traffic",{}).get("receiveSpeedBps",0))
+
+        self._attrs["transmit_speed"] = f"{unit_convert(transmit_speed, self._unit_of_measurement)} {self._unit_of_measurement}"
+        self._attrs["receive_speed"] = f"{unit_convert(receive_speed, self._unit_of_measurement)} {self._unit_of_measurement}"
+
+        self._attrs["network"] = self.coordinator.data[self._system_id][
+            "devices"
+        ][self._item_id]["network"]
+
         return self._state
 
     @property
@@ -147,8 +186,14 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
     @property
     def device_info(self):
         """Define the device as a device tracker system."""
+        if self._mac:
+            mac = {(CONNECTION_NETWORK_MAC, self._mac)}
+        else:
+            mac = {}
+
         device_info = {
             ATTR_IDENTIFIERS: {(DOMAIN, self._item_id)},
+            ATTR_CONNECTIONS: mac,
             ATTR_NAME: self._name,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,

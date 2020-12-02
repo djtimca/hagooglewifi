@@ -2,9 +2,6 @@
 
 from homeassistant.const import (
     ATTR_NAME,
-    DATA_RATE_BYTES_PER_SECOND,
-    DATA_RATE_GIGABYTES_PER_SECOND,
-    DATA_RATE_KILOBYTES_PER_SECOND,
     DATA_RATE_MEGABYTES_PER_SECOND,
 )
 from homeassistant.exceptions import HomeAssistantError
@@ -23,6 +20,7 @@ from .const import (
     DEFAULT_ICON,
     DEV_MANUFACTURER,
     DOMAIN,
+    unit_convert,
 )
 
 SERVICE_SPEED_TEST = "speed_test"
@@ -41,6 +39,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             icon=DEFAULT_ICON,
             system_id=system_id,
             speed_key="transmitWanSpeedBps",
+            speed_type="speed_test",
             unit_of_measure=entry.options.get(
                 CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
             ),
@@ -53,6 +52,33 @@ async def async_setup_entry(hass, entry, async_add_entities):
             icon=DEFAULT_ICON,
             system_id=system_id,
             speed_key="receiveWanSpeedBps",
+            speed_type="speed_test",
+            unit_of_measure=entry.options.get(
+                CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+            ),
+        )
+        entities.append(entity)
+
+        entity = GoogleWifiSpeedSensor(
+            coordinator=coordinator,
+            name=f"Google Wifi System {system_id} Upload Traffic",
+            icon=DEFAULT_ICON,
+            system_id=system_id,
+            speed_key="transmitSpeedBps",
+            speed_type="realtime",
+            unit_of_measure=entry.options.get(
+                CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+            ),
+        )
+        entities.append(entity)
+
+        entity = GoogleWifiSpeedSensor(
+            coordinator=coordinator,
+            name=f"Google Wifi System {system_id} Download Traffic",
+            icon=DEFAULT_ICON,
+            system_id=system_id,
+            speed_key="receiveSpeedBps",
+            speed_type="realtime",
             unit_of_measure=entry.options.get(
                 CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
             ),
@@ -101,7 +127,16 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class GoogleWifiSpeedSensor(GoogleWifiEntity):
     """Defines a Google WiFi Speed sensor."""
 
-    def __init__(self, coordinator, name, icon, system_id, speed_key, unit_of_measure):
+    def __init__(
+        self, 
+        coordinator, 
+        name, 
+        icon, 
+        system_id, 
+        speed_key, 
+        speed_type, 
+        unit_of_measure
+    ):
         """Initialize the sensor."""
         super().__init__(
             coordinator=coordinator,
@@ -114,6 +149,7 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
         self._state = None
         self._device_info = None
         self._speed_key = speed_key
+        self._speed_type = speed_type
         self.attrs = {}
         self._unit_of_measurement = unit_of_measure
 
@@ -126,20 +162,22 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
     def state(self):
         """Return the state of the sensor."""
         if self.coordinator.data:
-            if self.coordinator.data[self._system_id].get("speedtest"):
-                self._state = float(
-                    self.coordinator.data[self._system_id]["speedtest"][self._speed_key]
-                )
+            if self._speed_type == "speed_test":
+                if self.coordinator.data[self._system_id].get("speedtest"):
+                    self._state = float(
+                        self.coordinator.data[self._system_id]["speedtest"][self._speed_key]
+                    )
 
-                if self._unit_of_measurement == DATA_RATE_KILOBYTES_PER_SECOND:
-                    self._state *= 1000
-                elif self._unit_of_measurement == DATA_RATE_MEGABYTES_PER_SECOND:
-                    self._state *= 1e-6
-                elif self._unit_of_measurement == DATA_RATE_GIGABYTES_PER_SECOND:
-                    self._state *= 1e-9
+                    self._state = unit_convert(self._state, self._unit_of_measurement)                    
 
-                self._state = round(self._state, 2)
+            elif self._speed_type == "realtime":
+                if self.coordinator.data[self._system_id].get("groupTraffic"):
+                    self._state = float(
+                        self.coordinator.data[self._system_id]["groupTraffic"].get(self._speed_key,0)
+                    )
 
+                    self._state = unit_convert(self._state, self._unit_of_measurement)
+                
             return self._state
 
     @property
