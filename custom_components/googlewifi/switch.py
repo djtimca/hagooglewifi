@@ -7,8 +7,7 @@ from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABYTES_PER_SECOND
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
-from homeassistant.util.dt import as_local, parse_datetime, as_timestamp
-from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.util.dt import as_local, as_timestamp, parse_datetime
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
@@ -18,7 +17,6 @@ from .const import (
     ATTR_MODEL,
     CONF_SPEED_UNITS,
     COORDINATOR,
-    CONF_SPEED_UNITS,
     DEFAULT_ICON,
     DEV_CLIENT_MODEL,
     DOMAIN,

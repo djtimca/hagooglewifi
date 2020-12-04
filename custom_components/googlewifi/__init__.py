@@ -5,7 +5,7 @@ import time
 from datetime import timedelta
 
 import voluptuous as vol
-from googlewifi import GoogleWifi, GoogleWifiException, GoogleHomeIgnoreDevice
+from googlewifi import GoogleHomeIgnoreDevice, GoogleWifi, GoogleWifiException
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import CoreState, HomeAssistant, callback
@@ -209,9 +209,7 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
             session = aiohttp_client.async_create_clientsession(self.hass)
             self.api = GoogleWifi(refresh_token=self.refresh_token, session=session)
         except GoogleHomeIgnoreDevice as error:
-            raise UpdateFailed(
-                f"Error connecting to GoogleWifi: {error}"
-            ) from error
+            raise UpdateFailed(f"Error connecting to GoogleWifi: {error}") from error
         except ConnectionError as error:
             raise PlatformNotReady(
                 f"Error connecting to GoogleWifi: {error}"
