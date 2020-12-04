@@ -7,7 +7,7 @@ from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABYTES_PER_SECOND
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
-from homeassistant.util.dt import as_local, parse_datetime
+from homeassistant.util.dt import as_local, parse_datetime, as_timestamp
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
@@ -115,13 +115,15 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
                         ]["prioritizedStation"]["stationId"]
                         == self._item_id
                     ):
-                        is_prioritized = True
                         end_time = self.coordinator.data[self._system_id][
                             "groupSettings"
                         ]["lanSettings"]["prioritizedStation"]["prioritizationEndTime"]
                         is_prioritized_end = as_local(
                             parse_datetime(end_time)
                         ).strftime("%d-%b-%y %I:%M %p")
+
+                        if as_timestamp(parse_datetime(end_time)) > time.time():
+                            is_prioritized = True
 
                 self._attrs["prioritized"] = is_prioritized
                 self._attrs["prioritized_end"] = is_prioritized_end
@@ -211,12 +213,14 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
         """Turn on (unpause) internet to the client."""
         self._state = True
         self._last_change = time.time()
+        self.async_schedule_update_ha_state()
         await self.coordinator.api.pause_device(self._system_id, self._item_id, False)
 
     async def async_turn_off(self, **kwargs):
         """Turn on (pause) internet to the client."""
         self._state = False
         self._last_change = time.time()
+        self.async_schedule_update_ha_state()
         await self.coordinator.api.pause_device(self._system_id, self._item_id, True)
 
     async def async_prioritize_device(self, duration):
