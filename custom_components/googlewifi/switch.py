@@ -8,6 +8,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.util.dt import as_local, as_timestamp, parse_datetime
+from homeassistant.core import callback
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
@@ -32,6 +33,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the switch platform."""
 
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    device = hass.data[DOMAIN][entry.entry_id]
+
     entities = []
 
     data_unit = entry.options.get(CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND)
@@ -55,6 +58,34 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
+    @callback
+    def async_check_entities():
+        """Check if there are new entities added to Google Wifi."""
+        new_entities = []
+        for system_id, system in coordinator.data.items():
+            for dev_id, device in system["devices"].items():
+                device_name = f"{device['friendlyName']}"
+
+                if device.get("friendlyType"):
+                    device_name = device_name + f" ({device['friendlyType']})"
+
+                entity = GoogleWifiSwitch(
+                    coordinator=coordinator,
+                    name=device_name,
+                    icon=DEFAULT_ICON,
+                    system_id=system_id,
+                    item_id=dev_id,
+                    data_unit=data_unit,
+                )
+                
+                if entity not in entities:
+                    entities.append(entity)
+                    new_entities.append(entity)
+
+        async_add_entities(new_entities)
+
+    device.events.async_add_listener(async_check_entities)
+    
     # register service for reset
     platform = entity_platform.current_platform.get()
 
@@ -69,6 +100,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         {},
         "async_clear_prioritization",
     )
+
+    return True
 
 
 class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
