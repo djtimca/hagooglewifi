@@ -11,6 +11,7 @@ from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import CoreState, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import aiohttp_client
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -28,6 +29,8 @@ from .const import (
     GOOGLEWIFI_API,
     POLLING_INTERVAL,
     REFRESH_TOKEN,
+    SIGNAL_ADD_DEVICE,
+    SIGNAL_DELETE_DEVICE,
 )
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
@@ -112,6 +115,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     return unload_ok
 
 
+async def cleanup_device_registry(hass: HomeAssistant, device_id):
+    """Remove device registry entry if there are no remaining entities."""
+
+    device_registry = await hass.helpers.device_registry.async_get_registry()
+    entity_registry = await hass.helpers.entity_registry.async_get_registry()
+    if device_id and not hass.helpers.entity_registry.async_entries_for_device(
+        entity_registry, device_id, include_disabled_entities=True
+    ):
+        device_registry.async_remove_device(device_id)
+
+
 class GoogleWiFiUpdater(DataUpdateCoordinator):
     """Class to manage fetching update data from the Google Wifi API."""
 
@@ -136,6 +150,7 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         self.auto_speedtest = auto_speedtest
         self.speedtest_interval = speedtest_interval
         self._force_speed_update = None
+        self.devicelist = []
 
         super().__init__(
             hass=hass,
@@ -167,6 +182,15 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
                     device_network = device.get("ipAddress", " " * 10)
                     device_network = ".".join(device_network.split(".", 3)[:3])
 
+                    if device_id not in self.devicelist:
+                        to_add = {
+                            "system_id": system_id,
+                            "device_id": device_id,
+                            "device": device,
+                        }
+                        async_dispatcher_send(self.hass, SIGNAL_ADD_DEVICE, to_add)
+                        self.devicelist.append(device_id)
+
                     if device.get("connected") and main_network == device_network:
                         connected_count += 1
                         device["network"] = "main"
@@ -179,6 +203,13 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
                     elif device.get("unfilteredFriendlyType") == "Nest Wifi point":
                         connected_count += 1
                         device["network"] = "main"
+
+                for known_device in self.devicelist:
+                    if known_device not in system["devices"]:
+                        async_dispatcher_send(
+                            self.hass, SIGNAL_DELETE_DEVICE, known_device
+                        )
+                        self.devicelist.remove(known_device)
 
             system_data[system_id]["connected_devices"] = connected_count
             system_data[system_id]["guest_devices"] = guest_connected_count
@@ -274,3 +305,18 @@ class GoogleWifiEntity(CoordinatorEntity):
     def _update_callback(self):
         """Handle device update."""
         self.async_write_ha_state()
+
+    async def _delete_callback(self, device_id):
+        """Remove the device when it disappears."""
+
+        if device_id == self._unique_id:
+            entity_registry = (
+                await self.hass.helpers.entity_registry.async_get_registry()
+            )
+
+            if entity_registry.async_is_registered(self.entity_id):
+                entity_entry = entity_registry.async_get(self.entity_id)
+                entity_registry.async_remove(self.entity_id)
+                await cleanup_device_registry(self.hass, entity_entry.device_id)
+            else:
+                await self.async_remove()

@@ -4,9 +4,11 @@ import time
 import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABYTES_PER_SECOND
+from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.util.dt import as_local, as_timestamp, parse_datetime
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
@@ -21,6 +23,8 @@ from .const import (
     DEV_CLIENT_MODEL,
     DOMAIN,
     PAUSE_UPDATE,
+    SIGNAL_ADD_DEVICE,
+    SIGNAL_DELETE_DEVICE,
     unit_convert,
 )
 
@@ -32,6 +36,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the switch platform."""
 
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    device = hass.data[DOMAIN][entry.entry_id]
+
     entities = []
 
     data_unit = entry.options.get(CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND)
@@ -55,6 +61,30 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
+    async def async_new_entities(device_info):
+        """Add new entities when they connect to Google Wifi."""
+        system_id = device_info["system_id"]
+        device_id = device_info["device_id"]
+        device = device_info["device"]
+
+        device_name = f"{device['friendlyName']}"
+
+        if device.get("friendlyType"):
+            device_name = device_name + f" ({device['friendlyType']})"
+
+        entity = GoogleWifiSwitch(
+            coordinator=coordinator,
+            name=device_name,
+            icon=DEFAULT_ICON,
+            system_id=system_id,
+            item_id=device_id,
+            data_unit=data_unit,
+        )
+        entities = [entity]
+        async_add_entities(entities)
+
+    async_dispatcher_connect(hass, SIGNAL_ADD_DEVICE, async_new_entities)
+
     # register service for reset
     platform = entity_platform.current_platform.get()
 
@@ -69,6 +99,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         {},
         "async_clear_prioritization",
     )
+
+    return True
 
 
 class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
