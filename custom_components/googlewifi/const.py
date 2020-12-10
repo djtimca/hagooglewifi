@@ -28,6 +28,8 @@ DEFAULT_SPEEDTEST = True
 CONF_SPEEDTEST_INTERVAL = "speedtest_interval"
 DEFAULT_SPEEDTEST_INTERVAL = 24
 CONF_SPEED_UNITS = "speed_units"
+SIGNAL_ADD_DEVICE = "googlewifi_add_device"
+SIGNAL_DELETE_DEVICE = "googlewifi_delete_device"
 
 
 def unit_convert(data_rate: float, unit_of_measurement: str):

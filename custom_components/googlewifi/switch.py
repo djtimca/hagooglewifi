@@ -4,11 +4,12 @@ import time
 import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABYTES_PER_SECOND
+from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.util.dt import as_local, as_timestamp, parse_datetime
-from homeassistant.core import callback
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
@@ -22,6 +23,8 @@ from .const import (
     DEV_CLIENT_MODEL,
     DOMAIN,
     PAUSE_UPDATE,
+    SIGNAL_ADD_DEVICE,
+    SIGNAL_DELETE_DEVICE,
     unit_convert,
 )
 
@@ -58,34 +61,30 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
-    @callback
-    def async_check_entities():
-        """Check if there are new entities added to Google Wifi."""
-        new_entities = []
-        for system_id, system in coordinator.data.items():
-            for dev_id, device in system["devices"].items():
-                device_name = f"{device['friendlyName']}"
+    async def async_new_entities(device_info):
+        """Add new entities when they connect to Google Wifi."""
+        system_id = device_info["system_id"]
+        device_id = device_info["device_id"]
+        device = device_info["device"]
 
-                if device.get("friendlyType"):
-                    device_name = device_name + f" ({device['friendlyType']})"
+        device_name = f"{device['friendlyName']}"
 
-                entity = GoogleWifiSwitch(
-                    coordinator=coordinator,
-                    name=device_name,
-                    icon=DEFAULT_ICON,
-                    system_id=system_id,
-                    item_id=dev_id,
-                    data_unit=data_unit,
-                )
-                
-                if entity not in entities:
-                    entities.append(entity)
-                    new_entities.append(entity)
+        if device.get("friendlyType"):
+            device_name = device_name + f" ({device['friendlyType']})"
 
-        async_add_entities(new_entities)
+        entity = GoogleWifiSwitch(
+            coordinator=coordinator,
+            name=device_name,
+            icon=DEFAULT_ICON,
+            system_id=system_id,
+            item_id=device_id,
+            data_unit=data_unit,
+        )
+        entities = [entity]
+        async_add_entities(entities)
 
-    device.events.async_add_listener(async_check_entities)
-    
+    async_dispatcher_connect(hass, SIGNAL_ADD_DEVICE, async_new_entities)
+
     # register service for reset
     platform = entity_platform.current_platform.get()
 

@@ -5,6 +5,7 @@ from homeassistant.components.device_tracker.const import DOMAIN as DEVICE_TRACK
 from homeassistant.components.device_tracker.const import SOURCE_TYPE_ROUTER
 from homeassistant.const import ATTR_NAME
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from . import GoogleWifiEntity, GoogleWiFiUpdater
 from .const import (
@@ -17,6 +18,7 @@ from .const import (
     DEV_CLIENT_MODEL,
     DEV_MANUFACTURER,
     DOMAIN,
+    SIGNAL_ADD_DEVICE,
 )
 
 
@@ -43,6 +45,29 @@ async def async_setup_entry(hass, entry, async_add_entities):
             entities.append(entity)
 
     async_add_entities(entities)
+
+    async def async_new_entities(device_info):
+        """Add new entities when they connect to Google Wifi."""
+        system_id = device_info["system_id"]
+        device_id = device_info["device_id"]
+        device = device_info["device"]
+
+        device_name = f"{device['friendlyName']}"
+
+        if device.get("friendlyType"):
+            device_name = device_name + f" ({device['friendlyType']})"
+
+        entity = GoogleWifiDeviceTracker(
+            coordinator=coordinator,
+            name=device_name,
+            icon=DEFAULT_ICON,
+            system_id=system_id,
+            item_id=device_id,
+        )
+        entities = [entity]
+        async_add_entities(entities)
+
+    async_dispatcher_connect(hass, SIGNAL_ADD_DEVICE, async_new_entities)
 
 
 class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
