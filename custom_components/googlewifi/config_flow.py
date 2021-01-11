@@ -7,12 +7,12 @@ from homeassistant import config_entries
 from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     DATA_RATE_BYTES_PER_SECOND,
-    DATA_RATE_GIGABYTES_PER_SECOND,
-    DATA_RATE_KILOBYTES_PER_SECOND,
-    DATA_RATE_MEGABYTES_PER_SECOND,
-    DATA_RATE_MEGABITS_PER_SECOND,
-    DATA_RATE_KILOBITS_PER_SECOND,
     DATA_RATE_GIGABITS_PER_SECOND,
+    DATA_RATE_GIGABYTES_PER_SECOND,
+    DATA_RATE_KILOBITS_PER_SECOND,
+    DATA_RATE_KILOBYTES_PER_SECOND,
+    DATA_RATE_MEGABITS_PER_SECOND,
+    DATA_RATE_MEGABYTES_PER_SECOND,
 )
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client, config_entry_flow
