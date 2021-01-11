@@ -10,6 +10,7 @@ from homeassistant.const import (
     DATA_RATE_GIGABYTES_PER_SECOND,
     DATA_RATE_KILOBYTES_PER_SECOND,
     DATA_RATE_MEGABYTES_PER_SECOND,
+    DATA_RATE_MEGABITS_PER_SECOND,
 )
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client, config_entry_flow
@@ -122,12 +123,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(
                         CONF_SPEED_UNITS,
                         default=self.config_entry.options.get(
-                            CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+                            CONF_SPEED_UNITS, DATA_RATE_MEGABITS_PER_SECOND
                         ),
                     ): vol.In(
                         {
                             DATA_RATE_BYTES_PER_SECOND: "B/s",
                             DATA_RATE_KILOBYTES_PER_SECOND: "kB/s",
+                            DATA_RATE_MEGABITS_PER_SECOND: "Mbit/s",
                             DATA_RATE_MEGABYTES_PER_SECOND: "MB/s",
                             DATA_RATE_GIGABYTES_PER_SECOND: "GB/s",
                         }

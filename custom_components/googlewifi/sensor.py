@@ -1,6 +1,6 @@
 """Definition and setup of the Google Wifi Speed Sensor for Home Assistant."""
 
-from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABYTES_PER_SECOND
+from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABITS_PER_SECOND
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -38,7 +38,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             speed_key="transmitWanSpeedBps",
             speed_type="speed_test",
             unit_of_measure=entry.options.get(
-                CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+                CONF_SPEED_UNITS, DATA_RATE_MEGABITS_PER_SECOND
             ),
         )
         entities.append(entity)
@@ -51,7 +51,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             speed_key="receiveWanSpeedBps",
             speed_type="speed_test",
             unit_of_measure=entry.options.get(
-                CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+                CONF_SPEED_UNITS, DATA_RATE_MEGABITS_PER_SECOND
             ),
         )
         entities.append(entity)
@@ -64,7 +64,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             speed_key="transmitSpeedBps",
             speed_type="realtime",
             unit_of_measure=entry.options.get(
-                CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+                CONF_SPEED_UNITS, DATA_RATE_MEGABITS_PER_SECOND
             ),
         )
         entities.append(entity)
@@ -77,7 +77,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             speed_key="receiveSpeedBps",
             speed_type="realtime",
             unit_of_measure=entry.options.get(
-                CONF_SPEED_UNITS, DATA_RATE_MEGABYTES_PER_SECOND
+                CONF_SPEED_UNITS, DATA_RATE_MEGABITS_PER_SECOND
             ),
         )
         entities.append(entity)
