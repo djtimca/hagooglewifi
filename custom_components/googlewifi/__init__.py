@@ -242,7 +242,7 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         except GoogleHomeIgnoreDevice as error:
             raise UpdateFailed(f"Error connecting to GoogleWifi: {error}") from error
         except ConnectionError as error:
-            raise PlatformNotReady(
+            raise ConfigEntryNotReady(
                 f"Error connecting to GoogleWifi: {error}"
             ) from error
         except ValueError as error:
