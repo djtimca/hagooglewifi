@@ -198,6 +198,8 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity):
             self._device_info = device_info
         except TypeError:
             pass
+        except KeyError:
+            pass
 
         return self._device_info
 
@@ -251,6 +253,8 @@ class GoogleWifiConnectedDevices(GoogleWifiEntity):
 
             self._device_info = device_info
         except TypeError:
+            pass
+        except KeyError:
             pass
 
         return self._device_info

@@ -166,6 +166,8 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
                     self._state = True
             except TypeError:
                 pass
+            except KeyError:
+                pass
 
         if self.coordinator.data:
             self._mac = self.coordinator.data[self._system_id]["devices"][
@@ -216,6 +218,8 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
             else:
                 self._available = False
         except TypeError:
+            pass
+        except KeyError:
             pass
 
         return self._available

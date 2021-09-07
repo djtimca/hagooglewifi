@@ -114,6 +114,8 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
             self._state = state
         except TypeError:
             pass
+        except KeyError:
+            pass
 
         return self._state
 
@@ -148,6 +150,8 @@ class GoogleWifiBinarySensor(GoogleWifiEntity, BinarySensorEntity):
 
             self._device_info = device_info
         except TypeError:
+            pass
+        except KeyError:
             pass
 
         return self._device_info

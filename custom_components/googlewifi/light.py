@@ -92,6 +92,8 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
                     self._state = False
             except TypeError:
                 pass
+            except KeyError:
+                pass
 
         return self._state
 
@@ -114,6 +116,8 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
                 else:
                     self._brightness = 0
             except TypeError:
+                pass
+            except KeyError:
                 pass
 
         return self._brightness
