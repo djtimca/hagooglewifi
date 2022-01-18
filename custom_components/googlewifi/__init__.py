@@ -288,7 +288,7 @@ class GoogleWifiEntity(CoordinatorEntity):
         return self._icon
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the attributes."""
         self._attrs["system"] = self._system_id
         return self._attrs
