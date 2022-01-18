@@ -4,7 +4,8 @@
     "config_flow": true,
     "documentation": "https://github.com/djtimca/hagooglewifi",
     "requirements": [
-      "googlewifi==0.0.18"
+      "googlewifi==0.0.19",
+      "grpcio==1.0.0"
     ],
     "issue_tracker": "https://github.com/djtimca/hagooglewifi/issues",
     "ssdp": [],
