@@ -4,7 +4,7 @@
     "config_flow": true,
     "documentation": "https://github.com/djtimca/hagooglewifi",
     "requirements": [
-      "googlewifi==0.0.19",
+      "googlewifi==0.0.20",
       "grpcio==1.44.0"
     ],
     "issue_tracker": "https://github.com/djtimca/hagooglewifi/issues",
@@ -15,5 +15,5 @@
     "codeowners": [
       "@djtimca"
     ],
-    "version": "0.1.29"
+    "version": "0.1.30"
   }
