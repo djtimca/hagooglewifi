@@ -5,7 +5,7 @@
     "documentation": "https://github.com/djtimca/hagooglewifi",
     "requirements": [
       "googlewifi==0.0.20",
-      "grpcio==1.45.0"
+      "grpcio>=1.45.0"
     ],
     "issue_tracker": "https://github.com/djtimca/hagooglewifi/issues",
     "ssdp": [],
