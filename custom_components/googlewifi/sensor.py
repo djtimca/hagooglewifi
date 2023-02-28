@@ -148,6 +148,8 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity, SensorEntity):
         self.attrs = {}
         self._unit_of_measurement = unit_of_measure
 
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    
     @property
     def unique_id(self):
         """Return the unique id for this sensor."""
@@ -178,11 +180,6 @@ class GoogleWifiSpeedSensor(GoogleWifiEntity, SensorEntity):
                     self._state = unit_convert(self._state, self._unit_of_measurement)
 
             return self._state
-
-    @property
-    def state_class(self):
-        """Return the state class of total for the sensors."""
-        return SensorStateClass.MEASUREMENT
     
     @property
     def unit_of_measurement(self):
