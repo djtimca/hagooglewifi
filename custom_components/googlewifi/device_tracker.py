@@ -2,7 +2,7 @@
 
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.components.device_tracker.const import DOMAIN as DEVICE_TRACKER
-from homeassistant.components.device_tracker.const import SOURCE_TYPE_ROUTER
+from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.const import ATTR_NAME
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -134,7 +134,7 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
     @property
     def source_type(self):
         """Return the source type of the client."""
-        return SOURCE_TYPE_ROUTER
+        return SourceType.ROUTER
 
     @property
     def device_info(self):
