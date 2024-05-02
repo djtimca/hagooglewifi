@@ -119,7 +119,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(
                         CONF_SPEED_UNITS,
                         default=self.config_entry.options.get(
-                            CONF_SPEED_UNITS, DATA_RATE_MEGABITS_PER_SECOND
+                            CONF_SPEED_UNITS, UnitOfDataRate.MEGABITS_PER_SECOND
                         ),
                     ): vol.In(
                         {

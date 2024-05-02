@@ -3,7 +3,7 @@ import time
 
 import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import ATTR_NAME, DATA_RATE_MEGABITS_PER_SECOND
+from homeassistant.const import ATTR_NAME, UnitOfDataRate
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
@@ -40,7 +40,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     entities = []
 
-    data_unit = entry.options.get(CONF_SPEED_UNITS, DATA_RATE_MEGABITS_PER_SECOND)
+    data_unit = entry.options.get(CONF_SPEED_UNITS, UnitOfDataRate.MEGABITS_PER_SECOND)
 
     for system_id, system in coordinator.data.items():
         for dev_id, device in system["devices"].items():
