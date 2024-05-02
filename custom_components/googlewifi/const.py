@@ -3,12 +3,6 @@
 from homeassistant.const import (
     ATTR_NAME,
     UnitOfDataRate,
-    DATA_RATE_BITS_PER_SECOND,
-    DATA_RATE_BYTES_PER_SECOND,
-    DATA_RATE_GIGABITS_PER_SECOND,
-    DATA_RATE_GIGABYTES_PER_SECOND,
-    DATA_RATE_KILOBITS_PER_SECOND,
-    DATA_RATE_KILOBYTES_PER_SECOND,
 )
 
 DOMAIN = "googlewifi"
@@ -38,19 +32,19 @@ SIGNAL_DELETE_DEVICE = "googlewifi_delete_device"
 def unit_convert(data_rate: float, unit_of_measurement: str):
     """Convert the speed based on unit of measure."""
 
-    if unit_of_measurement == DATA_RATE_BYTES_PER_SECOND:
+    if unit_of_measurement == UnitOfDataRate.BYTES_PER_SECOND:
         data_rate *= 0.125
-    elif unit_of_measurement == DATA_RATE_KILOBYTES_PER_SECOND:
+    elif unit_of_measurement == UnitOfDataRate.KILOBYTES_PER_SECOND:
         data_rate *= 0.000125
     elif unit_of_measurement == UnitOfDataRate.MEGABYTES_PER_SECOND:
         data_rate *= 1.25e-7
-    elif unit_of_measurement == DATA_RATE_GIGABYTES_PER_SECOND:
+    elif unit_of_measurement == UnitOfDataRate.GIGABYTES_PER_SECOND:
         data_rate *= 1.25e-10
-    elif unit_of_measurement == DATA_RATE_KILOBITS_PER_SECOND:
+    elif unit_of_measurement == UnitOfDataRate.KILOBITS_PER_SECOND:
         data_rate *= 0.001
     elif unit_of_measurement == UnitOfDataRate.MEGABITS_PER_SECOND:
         data_rate *= 1e-6
-    elif unit_of_measurement == DATA_RATE_GIGABITS_PER_SECOND:
+    elif unit_of_measurement == UnitOfDataRate.GIGABITS_PER_SECOND:
         data_rate *= 1e-9
 
     return round(data_rate, 2)
