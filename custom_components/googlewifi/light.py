@@ -127,7 +127,10 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
     def supported_features(self):
         """Return the supported features - only brightness."""
 
-        return LightEntityFeature.BRIGHTNESS
+        # According to Home Assistant documentation, brightness is now handled via color modes
+        # and not through LightEntityFeature
+        # The only features available in LightEntityFeature are EFFECT, FLASH, and TRANSITION
+        return 0
         
     @property
     def color_mode(self):
