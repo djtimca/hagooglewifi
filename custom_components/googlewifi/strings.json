@@ -3,7 +3,7 @@
     "config": {
       "step": {
         "user": {
-          "description": "Sign in at https://accounts.google.com/EmbeddedSetup with the Google account that manages your Wifi network, then copy the full value of the 'oauth_token' cookie (starts with oauth2_4/). You may also paste a master token (starts with aas_et/ or oauth2rt_1/).",
+          "description": "To connect you need a Google oauth_token:\n\n1. Open https://accounts.google.com/EmbeddedSetup in your browser and sign in with the Google account that manages your Wifi network. The page may appear blank or keep loading forever - that is normal.\n2. Open the browser developer tools (press F12, or right-click the page and choose Inspect).\n3. Go to the Application tab (Chrome/Edge) or Storage tab (Firefox) and open Cookies -> https://accounts.google.com.\n4. Find the cookie named 'oauth_token' and copy its ENTIRE value - it starts with oauth2_4/.\n5. Paste it into the token field below with your Google account email.\n\nAdvanced: you can paste an existing master token (starts with aas_et/ or oauth2rt_1/) instead of the oauth_token cookie.",
           "data": {
             "email": "Google account email",
             "oauth_token": "OAuth or master token",
@@ -11,7 +11,7 @@
           }
         },
         "reauth_confirm": {
-          "description": "Your Google Wifi credentials are no longer valid. Sign in at https://accounts.google.com/EmbeddedSetup, copy the 'oauth_token' cookie value and paste it below.",
+          "description": "Your Google Wifi credentials are no longer valid.\n\n1. Open https://accounts.google.com/EmbeddedSetup in your browser and sign in with the Google account that manages your Wifi network.\n2. Open developer tools (F12), go to Application -> Cookies -> https://accounts.google.com and copy the entire 'oauth_token' cookie value (starts with oauth2_4/).\n3. Paste it below with your Google account email.",
           "data": {
             "email": "Google account email",
             "oauth_token": "OAuth or master token"
@@ -19,9 +19,9 @@
         }
       },
       "error": {
-        "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-        "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-        "unknown": "[%key:common::config_flow::error::unknown%]"
+        "cannot_connect": "Could not reach Google. Check the internet connection and try again.",
+        "invalid_auth": "Google rejected these credentials. Check the email is correct and the token was copied in full, then sign in again for a fresh token - the oauth_token only works once.",
+        "unknown": "Something unexpected went wrong. Check the Home Assistant log for details."
       },
       "abort": {
         "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]",

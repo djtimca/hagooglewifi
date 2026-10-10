@@ -70,10 +70,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     oauth_token=token_input,
                     android_id=android_id,
                 )
-            except GoogleWifiAuthError:
+            except GoogleWifiAuthError as err:
+                _LOGGER.warning("Google Wifi oauth_token exchange failed: %s", err)
                 errors["base"] = "invalid_auth"
                 return None
-            except ConnectionError:
+            except ConnectionError as err:
+                _LOGGER.warning("Google Wifi token exchange connect error: %s", err)
                 errors["base"] = "cannot_connect"
                 return None
             except Exception:  # pylint: disable=broad-except
@@ -93,10 +95,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_auth"
                 return None
             await api_client.get_systems()
-        except (GoogleWifiAuthError, ValueError):
+        except (GoogleWifiAuthError, ValueError) as err:
+            _LOGGER.warning("Google Wifi authentication failed: %s", err)
             errors["base"] = "invalid_auth"
             return None
-        except (ConnectionError, GoogleWifiException):
+        except (ConnectionError, GoogleWifiException) as err:
+            _LOGGER.warning("Google Wifi connection failed: %s", err)
             errors["base"] = "cannot_connect"
             return None
         except Exception:  # pylint: disable=broad-except

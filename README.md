@@ -77,10 +77,11 @@ Restart Home Assistant.
 To install this integration you will need your Google account email and an `oauth_token`:
 
 1. Open https://accounts.google.com/EmbeddedSetup in your browser.
-2. Sign in with the Google account that owns/manages your Wifi network.
-3. Open the browser developer tools and find the `oauth_token` cookie for `accounts.google.com`.
-4. Copy the **entire** value (it starts with `oauth2_4/`).
-5. If you already have a master token (starts with `aas_et/` or `oauth2rt_1/`), you can paste that instead.
+2. Sign in with the Google account that owns/manages your Wifi network. The page may appear blank or keep loading forever - **that is normal**, continue anyway.
+3. Open the browser developer tools (press F12, or right-click the page and choose **Inspect**).
+4. Go to the **Application** tab (Chrome/Edge) or **Storage** tab (Firefox) and open **Cookies** -> `https://accounts.google.com`.
+5. Find the cookie named `oauth_token` and copy its **entire** value (it starts with `oauth2_4/`).
+6. If you already have a master token (starts with `aas_et/` or `oauth2rt_1/`), you can paste that instead.
 
 Once installed, restart Home Assistant and go to Configuration -> Integrations and click the + to add a new integration.
 
@@ -88,6 +89,6 @@ Search for Google WiFi and you will see the integration available.
 
 Enter your Google account email and the token in the integration configuration screen and hit submit.
 
-The `oauth_token` is exchanged once for a long-lived master token stored in the config entry. If Google invalidates it you will be prompted to reauthenticate.
+**Note:** the `oauth_token` is single-use - it is exchanged once for a long-lived master token stored in the config entry. If setup fails, sign in again to get a fresh token. If Google later invalidates the master token you will be prompted to reauthenticate.
 
 Enjoy!
