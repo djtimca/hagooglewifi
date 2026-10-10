@@ -45,14 +45,16 @@ The light platform allows you to turn on and off and set the brightness of the l
 
 ## Install
 
-To install this integration you will need a Google Refresh Token which you can get by following the instructions at: https://www.angelod.com/onhubauthtool
+To install this integration you will need your Google account email and a one-time `oauth_token` cookie:
 
-Note that using the Chrome Plugin is much easier.
+1. Open https://accounts.google.com/EmbeddedSetup in your browser and sign in with the account that manages your Google WiFi. The page may appear blank or keep loading after sign-in — that is normal.
+2. Open your browser developer tools (F12), go to Application (Chrome/Edge) or Storage (Firefox) -> Cookies -> `https://accounts.google.com`.
+3. Copy the full value of the `oauth_token` cookie.
 
 Once installed, restart Home Assistant and go to Configuration -> Integrations and click the + to add a new integration.
 
 Search for Google WiFi and you will see the integration available.
 
-Enter the refresh token in the integration configuration screen and hit submit.
+Enter your Google account email and the `oauth_token` value in the integration configuration screen and hit submit.
 
 Enjoy!

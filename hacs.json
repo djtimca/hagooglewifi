@@ -1,7 +1,6 @@
 {
     "name": "Google WiFi",
+    "render_readme": true,
     "country": "CA",
-    "domains": ["binary_sensor"],
-    "homeassistant": "0.115.0",
-    "iot_class": ["Cloud Polling"]
+    "homeassistant": "2025.8.0"
 }
