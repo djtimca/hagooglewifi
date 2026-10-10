@@ -31,6 +31,11 @@ _LOGGER = logging.getLogger(__name__)
 
 MASTER_TOKEN_PREFIXES = ("aas_et/", "oauth2rt_1/")
 
+DESCRIPTION_PLACEHOLDERS = {
+    "embedded_setup_url": "https://accounts.google.com/EmbeddedSetup",
+    "accounts_url": "https://accounts.google.com",
+}
+
 
 def _credentials_schema(default_email: str = "") -> vol.Schema:
     """Return the credential collection schema."""
@@ -136,6 +141,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 {vol.Required(ADD_DISABLED, default=True): bool}
             ),
             errors=errors,
+            description_placeholders=DESCRIPTION_PLACEHOLDERS,
         )
 
     async def async_step_reauth(self, entry_data):
@@ -164,6 +170,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 default_email=reauth_entry.data.get(CONF_EMAIL, "")
             ),
             errors=errors,
+            description_placeholders=DESCRIPTION_PLACEHOLDERS,
         )
 
 

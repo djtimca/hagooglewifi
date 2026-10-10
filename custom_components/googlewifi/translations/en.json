@@ -3,7 +3,7 @@
     "config": {
       "step": {
         "user": {
-          "description": "To connect you need a Google oauth_token:\n\n1. Open https://accounts.google.com/EmbeddedSetup in your browser and sign in with the Google account that manages your Wifi network. The page may appear blank or keep loading forever - that is normal.\n2. Open the browser developer tools (press F12, or right-click the page and choose Inspect).\n3. Go to the Application tab (Chrome/Edge) or Storage tab (Firefox) and open Cookies -> https://accounts.google.com.\n4. Find the cookie named 'oauth_token' and copy its ENTIRE value - it starts with oauth2_4/.\n5. Paste it into the token field below with your Google account email.\n\nAdvanced: you can paste an existing master token (starts with aas_et/ or oauth2rt_1/) instead of the oauth_token cookie.",
+          "description": "To connect you need a Google oauth_token:\n\n1. Open the [Google EmbeddedSetup sign-in page]({embedded_setup_url}) and sign in with the Google account that manages your Wifi network. The page may appear blank or keep loading forever - that is normal.\n2. Open the browser developer tools (press F12, or right-click the page and choose Inspect).\n3. Go to the Application tab (Chrome/Edge) or Storage tab (Firefox) and open Cookies -> {accounts_url}.\n4. Find the cookie named 'oauth_token' and copy its ENTIRE value - it starts with oauth2_4/.\n5. Paste it into the token field below with your Google account email.\n\nAdvanced: you can paste an existing master token (starts with aas_et/ or oauth2rt_1/) instead of the oauth_token cookie.",
           "data": {
             "email": "Google account email",
             "oauth_token": "OAuth or master token",
@@ -11,7 +11,7 @@
           }
         },
         "reauth_confirm": {
-          "description": "Your Google Wifi credentials are no longer valid.\n\n1. Open https://accounts.google.com/EmbeddedSetup in your browser and sign in with the Google account that manages your Wifi network.\n2. Open developer tools (F12), go to Application -> Cookies -> https://accounts.google.com and copy the entire 'oauth_token' cookie value (starts with oauth2_4/).\n3. Paste it below with your Google account email.",
+          "description": "Your Google Wifi credentials are no longer valid.\n\n1. Open the [Google EmbeddedSetup sign-in page]({embedded_setup_url}) and sign in with the Google account that manages your Wifi network.\n2. Open developer tools (F12), go to Application -> Cookies -> {accounts_url} and copy the entire 'oauth_token' cookie value (starts with oauth2_4/).\n3. Paste it below with your Google account email.",
           "data": {
             "email": "Google account email",
             "oauth_token": "OAuth or master token"

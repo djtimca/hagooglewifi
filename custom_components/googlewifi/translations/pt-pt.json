@@ -3,7 +3,7 @@
     "config": {
       "step": {
         "user": {
-          "description": "Para ligar precisa de um oauth_token do Google:\n\n1. Abra https://accounts.google.com/EmbeddedSetup no navegador e inicie sessão com a conta Google que gere a sua rede Wifi. A página pode ficar em branco ou a carregar para sempre - isso é normal.\n2. Abra as ferramentas de programador (prima F12, ou clique com o botão direito na página e escolha Inspecionar).\n3. Vá ao separador Application (Chrome/Edge) ou Storage (Firefox) e abra Cookies -> https://accounts.google.com.\n4. Encontre o cookie chamado 'oauth_token' e copie o valor COMPLETO - começa com oauth2_4/.\n5. Cole-o no campo de token abaixo com o email da sua conta Google.\n\nAvançado: pode colar um token mestre existente (começa com aas_et/ ou oauth2rt_1/) em vez do cookie oauth_token.",
+          "description": "Para ligar precisa de um oauth_token do Google:\n\n1. Abra a [página de início de sessão Google EmbeddedSetup]({embedded_setup_url}) e inicie sessão com a conta Google que gere a sua rede Wifi. A página pode ficar em branco ou a carregar para sempre - isso é normal.\n2. Abra as ferramentas de programador (prima F12, ou clique com o botão direito na página e escolha Inspecionar).\n3. Vá ao separador Application (Chrome/Edge) ou Storage (Firefox) e abra Cookies -> {accounts_url}.\n4. Encontre o cookie chamado 'oauth_token' e copie o valor COMPLETO - começa com oauth2_4/.\n5. Cole-o no campo de token abaixo com o email da sua conta Google.\n\nAvançado: pode colar um token mestre existente (começa com aas_et/ ou oauth2rt_1/) em vez do cookie oauth_token.",
           "data": {
             "email": "Email da conta Google",
             "oauth_token": "Token OAuth ou mestre",
@@ -11,7 +11,7 @@
           }
         },
         "reauth_confirm": {
-          "description": "As suas credenciais do Google Wifi já não são válidas.\n\n1. Abra https://accounts.google.com/EmbeddedSetup no navegador e inicie sessão com a conta Google que gere a sua rede Wifi.\n2. Abra as ferramentas de programador (F12), vá a Application -> Cookies -> https://accounts.google.com e copie o valor completo do cookie 'oauth_token' (começa com oauth2_4/).\n3. Cole-o abaixo com o email da sua conta Google.",
+          "description": "As suas credenciais do Google Wifi já não são válidas.\n\n1. Abra a [página de início de sessão Google EmbeddedSetup]({embedded_setup_url}) e inicie sessão com a conta Google que gere a sua rede Wifi.\n2. Abra as ferramentas de programador (F12), vá a Application -> Cookies -> {accounts_url} e copie o valor completo do cookie 'oauth_token' (começa com oauth2_4/).\n3. Cole-o abaixo com o email da sua conta Google.",
           "data": {
             "email": "Email da conta Google",
             "oauth_token": "Token OAuth ou mestre"
