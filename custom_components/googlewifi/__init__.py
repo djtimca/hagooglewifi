@@ -354,7 +354,8 @@ class GoogleWifiEntity(CoordinatorEntity):
         """Return the device registry id of the parent system device."""
         device_registry = dr.async_get(self.hass)
         parent = device_registry.async_get_device_by_identifier(
-            (DOMAIN, self._system_id)
+            (DOMAIN, self._system_id),
+            config_entry_id=self.coordinator.entry.entry_id,
         )
         return parent.id if parent else None
 
