@@ -6,7 +6,7 @@
     "iot_class": "cloud_polling",
     "documentation": "https://github.com/djtimca/hagooglewifi",
     "requirements": [
-      "googlewifi==0.1.0"
+      "googlewifi==0.1.1"
     ],
     "issue_tracker": "https://github.com/djtimca/hagooglewifi/issues",
     "ssdp": [],
