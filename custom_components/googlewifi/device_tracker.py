@@ -1,6 +1,6 @@
 """Support for Google Wifi Routers as device tracker."""
 
-from homeassistant.components.device_tracker.config_entry import ScannerEntity
+from homeassistant.components.device_tracker import ScannerEntity
 from homeassistant.components.device_tracker.const import DOMAIN as DEVICE_TRACKER
 from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.const import ATTR_NAME
@@ -67,7 +67,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entities = [entity]
         async_add_entities(entities)
 
-    async_dispatcher_connect(hass, SIGNAL_ADD_DEVICE, async_new_entities)
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, SIGNAL_ADD_DEVICE, async_new_entities)
+    )
 
 
 class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
@@ -150,7 +152,10 @@ class GoogleWifiDeviceTracker(GoogleWifiEntity, ScannerEntity):
             ATTR_CONNECTIONS: mac,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
-            "via_device": (DOMAIN, self._system_id),
         }
+
+        via_device_id = self._via_device_id()
+        if via_device_id:
+            device_info["via_device_id"] = via_device_id
 
         return device_info

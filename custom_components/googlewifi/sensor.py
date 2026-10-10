@@ -271,13 +271,12 @@ class GoogleWifiConnectedDevices(GoogleWifiEntity):
         """Return the current count of connected devices."""
 
         if self.coordinator.data:
+            system = self.coordinator.data.get(self._system_id, {})
             if self._count_type == "main":
-                self._state = self.coordinator.data[self._system_id][
-                    "connected_devices"
-                ]
+                self._state = system.get("connected_devices")
             elif self._count_type == "guest":
-                self._state = self.coordinator.data[self._system_id]["guest_devices"]
+                self._state = system.get("guest_devices")
             elif self._count_type == "total":
-                self._state = self.coordinator.data[self._system_id]["total_devices"]
+                self._state = system.get("total_devices")
 
         return self._state

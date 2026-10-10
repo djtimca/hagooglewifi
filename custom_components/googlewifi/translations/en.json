@@ -3,10 +3,18 @@
     "config": {
       "step": {
         "user": {
-          "description": "Please get a refresh token from https://www.angelod.com/onhubauthtool to configure the integration.",
+          "description": "Sign in at https://accounts.google.com/EmbeddedSetup with the Google account that manages your Wifi network, then copy the full value of the 'oauth_token' cookie (starts with oauth2_4/). You may also paste a master token (starts with aas_et/ or oauth2rt_1/).",
           "data": {
-            "refresh_token": "Refresh Token",
+            "email": "Google account email",
+            "oauth_token": "OAuth or master token",
             "add_disabled": "Add all entities as enabled?"
+          }
+        },
+        "reauth_confirm": {
+          "description": "Your Google Wifi credentials are no longer valid. Sign in at https://accounts.google.com/EmbeddedSetup, copy the 'oauth_token' cookie value and paste it below.",
+          "data": {
+            "email": "Google account email",
+            "oauth_token": "OAuth or master token"
           }
         }
       },
@@ -16,14 +24,14 @@
         "unknown": "[%key:common::config_flow::error::unknown%]"
       },
       "abort": {
-        "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
+        "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]",
+        "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
       }
     },
     "options": {
       "step": {
         "init": {
           "data": {
-            "refresh_token": "Enter the refresh token obtained from https://www.angelod.com/onhubauthtool",
             "add_disabled": "Add all entities as enabled?",
             "scan_interval": "Polling Interval (seconds)",
             "auto_speedtest": "Run speed test automatically?",

@@ -5,13 +5,23 @@ import time
 from datetime import timedelta
 
 import voluptuous as vol
-from googlewifi import GoogleHomeIgnoreDevice, GoogleWifi, GoogleWifiException
+from googlewifi import (
+    GoogleHomeIgnoreDevice,
+    GoogleWifi,
+    GoogleWifiAuthError,
+    GoogleWifiException,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import CoreState, HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client
-from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_connect,
+    async_dispatcher_send,
+)
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -20,6 +30,9 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import (
     ADD_DISABLED,
+    CONF_ANDROID_ID,
+    CONF_EMAIL,
+    CONF_MASTER_TOKEN,
     CONF_SPEEDTEST,
     CONF_SPEEDTEST_INTERVAL,
     COORDINATOR,
@@ -28,7 +41,6 @@ from .const import (
     DOMAIN,
     GOOGLEWIFI_API,
     POLLING_INTERVAL,
-    REFRESH_TOKEN,
     SIGNAL_ADD_DEVICE,
     SIGNAL_DELETE_DEVICE,
 )
@@ -53,16 +65,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     conf = entry.data
     conf_options = entry.options
 
+    if not conf.get(CONF_MASTER_TOKEN):
+        # Legacy entries only stored a refresh token which can no longer be
+        # exchanged for an API token. Force the user through reauth.
+        raise ConfigEntryAuthFailed("Google Wifi requires re-authentication")
+
     session = aiohttp_client.async_get_clientsession(hass)
 
-    api = GoogleWifi(refresh_token=conf[REFRESH_TOKEN], session=session)
+    credentials = {
+        CONF_EMAIL: conf[CONF_EMAIL],
+        CONF_MASTER_TOKEN: conf[CONF_MASTER_TOKEN],
+        CONF_ANDROID_ID: conf[CONF_ANDROID_ID],
+    }
+
+    api = GoogleWifi(**credentials, session=session)
 
     try:
         await api.connect()
-    except ConnectionError as error:
+    except GoogleWifiAuthError as error:
         _LOGGER.debug(f"Google WiFi API: {error}")
-        raise PlatformNotReady from error
-    except ValueError as error:
+        raise ConfigEntryAuthFailed from error
+    except (ConnectionError, ValueError) as error:
         _LOGGER.debug(f"Google WiFi API: {error}")
         raise ConfigEntryNotReady from error
 
@@ -71,7 +94,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         api=api,
         name="GoogleWifi",
         polling_interval=polling_interval,
-        refresh_token=conf[REFRESH_TOKEN],
+        credentials=credentials,
         entry=entry,
         add_disabled=conf.get(ADD_DISABLED, True),
         auto_speedtest=conf_options.get(CONF_SPEEDTEST, DEFAULT_SPEEDTEST),
@@ -111,12 +134,23 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     return unload_ok
 
 
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Migrate legacy config entries to the current version."""
+    if entry.version < 2:
+        data = dict(entry.data)
+        # The legacy refresh token cannot be converted; reauth handles it.
+        data.pop("refresh_token", None)
+        hass.config_entries.async_update_entry(entry, data=data, version=2)
+
+    return True
+
+
 async def cleanup_device_registry(hass: HomeAssistant, device_id):
     """Remove device registry entry if there are no remaining entities."""
 
-    device_registry = await hass.helpers.device_registry.async_get_registry()
-    entity_registry = await hass.helpers.entity_registry.async_get_registry()
-    if device_id and not hass.helpers.entity_registry.async_entries_for_device(
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
+    if device_id and not er.async_entries_for_device(
         entity_registry, device_id, include_disabled_entities=True
     ):
         device_registry.async_remove_device(device_id)
@@ -131,7 +165,7 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         api: str,
         name: str,
         polling_interval: int,
-        refresh_token: str,
+        credentials: dict,
         entry: ConfigEntry,
         add_disabled: bool,
         auto_speedtest: str,
@@ -139,14 +173,14 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
     ):
         """Initialize the global Google Wifi data updater."""
         self.api = api
-        self.refresh_token = refresh_token
+        self.credentials = credentials
         self.entry = entry
         self.add_disabled = add_disabled
         self._last_speedtest = 0
         self.auto_speedtest = auto_speedtest
         self.speedtest_interval = speedtest_interval
         self._force_speed_update = None
-        self.devicelist = []
+        self.devicelist = {}
 
         super().__init__(
             hass=hass,
@@ -166,9 +200,22 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
         try:
             system_data = await self.api.get_systems()
 
+            for old_system_id in list(self.devicelist):
+                if old_system_id not in system_data:
+                    for known_device in self.devicelist.pop(old_system_id):
+                        async_dispatcher_send(
+                            self.hass,
+                            SIGNAL_DELETE_DEVICE,
+                            {
+                                "system_id": old_system_id,
+                                "device_id": known_device,
+                            },
+                        )
+
             for system_id, system in system_data.items():
                 connected_count = 0
                 guest_connected_count = 0
+                system_devices = self.devicelist.setdefault(system_id, set())
                 main_network = system["groupSettings"]["lanSettings"].get(
                     "dhcpPoolBegin", " " * 10
                 )
@@ -178,14 +225,14 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
                     device_network = device.get("ipAddress", " " * 10)
                     device_network = ".".join(device_network.split(".", 3)[:3])
 
-                    if device_id not in self.devicelist:
+                    if device_id not in system_devices:
                         to_add = {
                             "system_id": system_id,
                             "device_id": device_id,
                             "device": device,
                         }
                         async_dispatcher_send(self.hass, SIGNAL_ADD_DEVICE, to_add)
-                        self.devicelist.append(device_id)
+                        system_devices.add(device_id)
 
                     if device.get("connected") and main_network == device_network:
                         connected_count += 1
@@ -200,18 +247,20 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
                         connected_count += 1
                         device["network"] = "main"
 
-                for known_device in self.devicelist:
+                for known_device in list(system_devices):
                     if known_device not in system["devices"]:
                         async_dispatcher_send(
-                            self.hass, SIGNAL_DELETE_DEVICE, known_device
+                            self.hass,
+                            SIGNAL_DELETE_DEVICE,
+                            {"system_id": system_id, "device_id": known_device},
                         )
-                        self.devicelist.remove(known_device)
+                        system_devices.discard(known_device)
 
-            system_data[system_id]["connected_devices"] = connected_count
-            system_data[system_id]["guest_devices"] = guest_connected_count
-            system_data[system_id]["total_devices"] = (
-                connected_count + guest_connected_count
-            )
+                system_data[system_id]["connected_devices"] = connected_count
+                system_data[system_id]["guest_devices"] = guest_connected_count
+                system_data[system_id]["total_devices"] = (
+                    connected_count + guest_connected_count
+                )
 
             if (
                 time.time()
@@ -227,24 +276,31 @@ class GoogleWiFiUpdater(DataUpdateCoordinator):
 
                 self._last_speedtest = time.time()
             elif self._force_speed_update:
-                speedtest_result = await self.api.run_speed_test(system_id=system_id)
-                system_data[system_id]["speedtest"] = speedtest_result
+                speedtest_result = await self.api.run_speed_test(
+                    system_id=self._force_speed_update
+                )
+                if self._force_speed_update in system_data:
+                    system_data[self._force_speed_update][
+                        "speedtest"
+                    ] = speedtest_result
                 self._force_speed_update = None
 
             return system_data
+        except GoogleWifiAuthError as error:
+            self.entry.async_start_reauth(self.hass)
+            raise UpdateFailed(
+                f"GoogleWifi authentication failed: {error}"
+            ) from error
         except GoogleWifiException as error:
             session = aiohttp_client.async_create_clientsession(self.hass)
-            self.api = GoogleWifi(refresh_token=self.refresh_token, session=session)
+            self.api = GoogleWifi(**self.credentials, session=session)
+            raise UpdateFailed(f"Error connecting to GoogleWifi: {error}") from error
         except GoogleHomeIgnoreDevice as error:
             raise UpdateFailed(f"Error connecting to GoogleWifi: {error}") from error
         except ConnectionError as error:
-            raise ConfigEntryNotReady(
-                f"Error connecting to GoogleWifi: {error}"
-            ) from error
+            raise UpdateFailed(f"Error connecting to GoogleWifi: {error}") from error
         except ValueError as error:
-            raise ConfigEntryNotReady(
-                f"Invalid data from GoogleWifi: {error}"
-            ) from error
+            raise UpdateFailed(f"Invalid data from GoogleWifi: {error}") from error
 
 
 class GoogleWifiEntity(CoordinatorEntity):
@@ -294,26 +350,45 @@ class GoogleWifiEntity(CoordinatorEntity):
         """Return option setting to enable or disable by default."""
         return self.coordinator.add_disabled
 
+    def _via_device_id(self):
+        """Return the device registry id of the parent system device."""
+        device_registry = dr.async_get(self.hass)
+        parent = device_registry.async_get_device_by_identifier(
+            (DOMAIN, self._system_id)
+        )
+        return parent.id if parent else None
+
     async def async_added_to_hass(self):
         """When entity is added to HASS."""
         self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, SIGNAL_DELETE_DEVICE, self._delete_callback
+            )
+        )
 
     @callback
     def _update_callback(self):
         """Handle device update."""
         self.async_write_ha_state()
 
-    async def _delete_callback(self, device_id):
+    async def _delete_callback(self, payload):
         """Remove the device when it disappears."""
 
-        if device_id == self._unique_id:
-            entity_registry = (
-                await self.hass.helpers.entity_registry.async_get_registry()
-            )
+        if not isinstance(payload, dict):
+            return
 
-            if entity_registry.async_is_registered(self.entity_id):
-                entity_entry = entity_registry.async_get(self.entity_id)
-                entity_registry.async_remove(self.entity_id)
-                await cleanup_device_registry(self.hass, entity_entry.device_id)
-            else:
-                await self.async_remove()
+        if (
+            payload.get("device_id") != self._item_id
+            or payload.get("system_id") != self._system_id
+        ):
+            return
+
+        entity_registry = er.async_get(self.hass)
+
+        if self.entity_id and entity_registry.async_is_registered(self.entity_id):
+            entity_entry = entity_registry.async_get(self.entity_id)
+            entity_registry.async_remove(self.entity_id)
+            await cleanup_device_registry(self.hass, entity_entry.device_id)
+        else:
+            await self.async_remove()

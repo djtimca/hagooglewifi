@@ -141,8 +141,11 @@ class GoogleWifiLight(GoogleWifiEntity, LightEntity):
             ATTR_NAME: self._name,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
-            "via_device": (DOMAIN, self._system_id),
         }
+
+        via_device_id = self._via_device_id()
+        if via_device_id:
+            device_info["via_device_id"] = via_device_id
 
         return device_info
 

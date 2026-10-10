@@ -74,14 +74,20 @@ Restart Home Assistant.
 
 ## Configure the integration:
 
-To install this integration you will need a Google Refresh Token which you can get by installing the Chrome Extension directly from Github: https://github.com/AngeloD2022/onhubauthhelper
+To install this integration you will need your Google account email and an `oauth_token`:
 
-Note that using the Chrome Plugin is much easier.
+1. Open https://accounts.google.com/EmbeddedSetup in your browser.
+2. Sign in with the Google account that owns/manages your Wifi network.
+3. Open the browser developer tools and find the `oauth_token` cookie for `accounts.google.com`.
+4. Copy the **entire** value (it starts with `oauth2_4/`).
+5. If you already have a master token (starts with `aas_et/` or `oauth2rt_1/`), you can paste that instead.
 
 Once installed, restart Home Assistant and go to Configuration -> Integrations and click the + to add a new integration.
 
 Search for Google WiFi and you will see the integration available.
 
-Enter the refresh token in the integration configuration screen and hit submit.
+Enter your Google account email and the token in the integration configuration screen and hit submit.
+
+The `oauth_token` is exchanged once for a long-lived master token stored in the config entry. If Google invalidates it you will be prompted to reauthenticate.
 
 Enjoy!

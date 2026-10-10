@@ -24,7 +24,6 @@ from .const import (
     DOMAIN,
     PAUSE_UPDATE,
     SIGNAL_ADD_DEVICE,
-    SIGNAL_DELETE_DEVICE,
     unit_convert,
 )
 
@@ -83,7 +82,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entities = [entity]
         async_add_entities(entities)
 
-    async_dispatcher_connect(hass, SIGNAL_ADD_DEVICE, async_new_entities)
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, SIGNAL_ADD_DEVICE, async_new_entities)
+    )
 
     # register service for reset
     platform = entity_platform.current_platform.get()
@@ -238,8 +239,11 @@ class GoogleWifiSwitch(GoogleWifiEntity, SwitchEntity):
             ATTR_NAME: self._name,
             ATTR_MANUFACTURER: "Google",
             ATTR_MODEL: DEV_CLIENT_MODEL,
-            "via_device": (DOMAIN, self._system_id),
         }
+
+        via_device_id = self._via_device_id()
+        if via_device_id:
+            device_info["via_device_id"] = via_device_id
 
         return device_info
 

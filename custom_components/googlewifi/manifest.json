@@ -2,9 +2,11 @@
     "domain": "googlewifi",
     "name": "Google WiFi",
     "config_flow": true,
+    "integration_type": "hub",
+    "iot_class": "cloud_polling",
     "documentation": "https://github.com/djtimca/hagooglewifi",
     "requirements": [
-      "googlewifi==0.0.21"
+      "googlewifi==0.1.0"
     ],
     "issue_tracker": "https://github.com/djtimca/hagooglewifi/issues",
     "ssdp": [],
@@ -14,5 +16,5 @@
     "codeowners": [
       "@djtimca"
     ],
-    "version": "0.1.34"
+    "version": "0.1.35"
   }
