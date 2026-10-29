@@ -12,7 +12,7 @@
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/djtimca/hagooglewifi/issues",
     "requirements": [
-        "googlewifi==0.1.1"
+        "googlewifi==0.1.2"
     ],
     "ssdp": [],
     "version": "0.1.37",
